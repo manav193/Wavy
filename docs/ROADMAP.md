@@ -40,7 +40,7 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 
 ## Phase 3 — Lyric-video studio timeline
 
-- [x] Add project settings: 9:16, 16:9, and 1:1; 720p/1080p output height and 24/30/60 FPS.
+- [x] Add project settings: 9:16, 16:9, and 1:1; 720p/1080p resolution presets and 24/30/60 FPS.
 - [x] Add separate audio, visualizer, lyrics-cue, and text-overlay timeline lanes.
 - [x] Add timeline zoom, 250 ms snapping, draggable/resizable visualizer and overlay clips, lyric cue seeking and direct timestamp editing.
 - [x] Add a composition preview for background presets, active lyric cue, timed text overlays, and visualizer-layer timing.
