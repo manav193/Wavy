@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   formatBytes,
   getExtractionInputName,
+  getExtractionMimeType,
+  getExtractionOutputName,
   getFileExtension,
   isSupportedVideoFile,
   MAX_EXTRACTION_BYTES,
@@ -22,6 +24,14 @@ describe("media file helpers", () => {
   it("uses a safe deterministic input name for FFmpeg", () => {
     expect(getExtractionInputName("../../my clip.MOV")).toBe("source.mov");
     expect(getExtractionInputName("odd-name.unknown")).toBe("source.media");
+  });
+
+  it("creates matching download names and MIME types for both formats", () => {
+    expect(getExtractionOutputName("concert.final.mp4", "wav")).toBe("concert.final.wav");
+    expect(getExtractionOutputName("concert.final.mp4", "mp3")).toBe("concert.final.mp3");
+    expect(getExtractionOutputName(".mp4", "wav")).toBe("wavy-extracted-audio.wav");
+    expect(getExtractionMimeType("wav")).toBe("audio/wav");
+    expect(getExtractionMimeType("mp3")).toBe("audio/mpeg");
   });
 
   it("formats sizes and defines a 200 MB safety cap", () => {
