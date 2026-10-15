@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Download, Film, Grid2X2, MoveHorizontal, Music2, Plus, RotateCcw, SkipBack, Settings2, Sparkles, Type, Upload, Waves } from "lucide-react";
 import type { LyricLine } from "../lyrics/lrc";
+import AudioCanvas, { type VisualizerMode } from "../visualizer/AudioCanvas";
 import {
   createDefaultProject,
   getCanvasDimensions,
@@ -20,6 +21,9 @@ interface StudioTimelineProps {
   trackName: string;
   lyricLines: LyricLine[];
   onMoveLyric: (id: string, startMs: number) => void;
+  analyser: AnalyserNode | null;
+  playing: boolean;
+  visualizerMode: VisualizerMode;
 }
 
 type DragMode = "move" | "resize";
@@ -61,7 +65,7 @@ function makeId(): string {
     : `clip-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export default function StudioTimeline({ currentTime, duration, seek, trackName, lyricLines, onMoveLyric }: StudioTimelineProps) {
+export default function StudioTimeline({ currentTime, duration, seek, trackName, lyricLines, onMoveLyric, analyser, playing, visualizerMode }: StudioTimelineProps) {
   const [project, setProject] = useState<StudioProject>(readSavedProject);
   const [selectedClipId, setSelectedClipId] = useState<string | null>("overlay-title");
   const [notice, setNotice] = useState("");
@@ -232,9 +236,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
           </div>
           <div className={previewClass} style={{ aspectRatio: project.aspectRatio.replace(":", " / ") }}>
             <div className="studio-preview-grid" />
-            {visualizerIsActive && <div className="studio-preview-visualizer" aria-hidden="true">
-              {Array.from({ length: 32 }, (_, index) => <span key={index} style={{ height: `${10 + ((index * 17 + Math.floor(currentTime * 13)) % 75)}%` }} />)}
-            </div>}
+            {visualizerIsActive && <div className="studio-preview-visualizer" aria-label="Audio-reactive preview visualizer"><AudioCanvas analyser={analyser} mode={visualizerMode} playing={playing} compact /></div>}
             {project.showLyrics && <div className="studio-preview-lyrics">{activeLyric?.text ?? "Your lyrics appear here"}</div>}
             {activeOverlay?.text && <div className="studio-preview-overlay">{activeOverlay.text}</div>}
             <span className="studio-preview-time">{timeLabel(currentTime)}</span>
