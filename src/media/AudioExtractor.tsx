@@ -50,6 +50,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
     try {
       setStatus("Loading local conversion engine…");
       const { FFmpeg } = await import("@ffmpeg/ffmpeg");
+      if (cancelledRef.current) return;
       ffmpeg = new FFmpeg();
       ffmpegRef.current = ffmpeg;
       ffmpeg.on("progress", ({ progress: ratio }) => {
@@ -62,10 +63,13 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
       });
       const coreURL = await toBlobURL(`${CORE_BASE_URL}/ffmpeg-core.js`, "text/javascript");
       const wasmURL = await toBlobURL(`${CORE_BASE_URL}/ffmpeg-core.wasm`, "application/wasm");
+      if (cancelledRef.current) return;
       await ffmpeg.load({ coreURL, wasmURL });
+      if (cancelledRef.current) return;
       setStatus("Preparing source media…");
       const inputName = getExtractionInputName(sourceFile.name);
       await ffmpeg.writeFile(inputName, await fetchFile(sourceFile));
+      if (cancelledRef.current) return;
       setStatus("Extracting and encoding WAV…");
       const exitCode = await ffmpeg.exec([
         "-i", inputName,
@@ -83,7 +87,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
       if (typeof result === "string" || result.byteLength === 0) {
         throw new Error("The source did not produce a valid audio stream. Check that the video contains audio.");
       }
-      const wavBlob = new Blob([result], { type: "audio/wav" });
+      const wavBlob = new Blob([new Uint8Array(result).buffer as ArrayBuffer], { type: "audio/wav" });
       const url = URL.createObjectURL(wavBlob);
       setOutputUrl(url);
       setOutputName(`${sourceFile.name.replace(/\.[^.]+$/, "") || "wavy-extracted-audio"}.wav`);
