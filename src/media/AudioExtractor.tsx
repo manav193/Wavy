@@ -11,6 +11,7 @@ const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/um
 
 export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
   const ffmpegRef = useRef<import("@ffmpeg/ffmpeg").FFmpeg | null>(null);
+  const cancelledRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
@@ -18,12 +19,11 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
   const [outputUrl, setOutputUrl] = useState("");
   const [outputName, setOutputName] = useState("");
 
-  useEffect(() => () => {
-    ffmpegRef.current?.terminate();
-    if (outputUrl) URL.revokeObjectURL(outputUrl);
-  }, [outputUrl]);
+  useEffect(() => () => { ffmpegRef.current?.terminate(); }, []);
+  useEffect(() => () => { if (outputUrl) URL.revokeObjectURL(outputUrl); }, [outputUrl]);
 
   const cancel = () => {
+    cancelledRef.current = true;
     ffmpegRef.current?.terminate();
     ffmpegRef.current = null;
     setBusy(false);
@@ -45,6 +45,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
     setOutputUrl("");
     setOutputName("");
     setBusy(true);
+    cancelledRef.current = false;
     let ffmpeg: import("@ffmpeg/ffmpeg").FFmpeg | null = null;
     try {
       setStatus("Loading local conversion engine…");
@@ -89,6 +90,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
       setProgress(100);
       setStatus(`WAV ready · ${formatBytes(wavBlob.size)} · 44.1 kHz stereo PCM`);
     } catch (cause) {
+      if (cancelledRef.current) return;
       const message = cause instanceof Error ? cause.message : "Unexpected conversion error.";
       setError(message.includes("SharedArrayBuffer") || message.includes("cross-origin")
         ? "The conversion engine could not start in this browser context. Try a current browser and a secure (HTTPS or localhost) origin."
