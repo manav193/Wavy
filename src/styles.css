@@ -245,7 +245,8 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10
 .studio-preview.background-sunset { background: radial-gradient(ellipse at 20% 10%, rgba(245,122,84,.72), transparent 46%), radial-gradient(ellipse at 90% 90%, rgba(133,69,168,.58), transparent 48%), #1a0d19; }
 .studio-preview.background-paper { background: linear-gradient(135deg, #f6edda, #d5e6d7); color: #15261b; }
 .studio-preview-grid { position: absolute; inset: 0; z-index: -1; opacity: .17; background-image: linear-gradient(rgba(128,255,179,.25) 1px, transparent 1px), linear-gradient(90deg, rgba(128,255,179,.25) 1px, transparent 1px); background-size: 5% 5%; mask-image: linear-gradient(transparent, #000 22%, #000 80%, transparent); }
-.studio-preview-visualizer { position: absolute; left: 12%; right: 12%; bottom: 25%; height: 30%; display: flex; align-items: center; justify-content: center; gap: 1.2%; opacity: .82; }
+.studio-preview-visualizer { position: absolute; left: 10%; right: 10%; bottom: 25%; height: 34%; opacity: .88; pointer-events: none; }
+.studio-preview-visualizer .visual-canvas { display: block; width: 100%; height: 100%; }
 .studio-preview-visualizer span { display: block; flex: 1; min-width: 2px; border-radius: 99px; background: linear-gradient(180deg, #c5ff9e, #5cf0a0 55%, rgba(92,240,160,.12)); box-shadow: 0 0 13px rgba(92,240,160,.22); }
 .studio-preview-lyrics { position: absolute; left: 8%; right: 8%; bottom: 12%; z-index: 1; color: #eaffef; font-size: clamp(11px, 2.3vw, 24px); font-weight: 800; line-height: 1.35; letter-spacing: -.025em; text-align: center; overflow-wrap: anywhere; text-shadow: 0 2px 3px rgba(0,0,0,.75), 0 0 18px rgba(128,255,179,.4); }
 .background-paper .studio-preview-lyrics { color: #16251b; text-shadow: none; }
