@@ -76,8 +76,22 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
     catch { setWarning("Autosave is unavailable in this browser storage context. Export a project JSON backup."); }
   }, [project]);
 
+  useEffect(() => {
+    if (duration <= 0) return;
+    setProject((current) => {
+      let changed = false;
+      const clips = current.clips.map((clip) => {
+        const normalized = normalizeClip(clip, duration, current.snapEnabled);
+        if (normalized.startSec !== clip.startSec || normalized.durationSec !== clip.durationSec) changed = true;
+        return normalized;
+      });
+      return changed ? { ...current, clips } : current;
+    });
+  }, [duration]);
+
   const safeDuration = Math.max(1, duration || 60);
   const timelineWidth = Math.max(720, safeDuration * project.pixelsPerSecond);
+  const timelineLaneWidth = Math.max(616, timelineWidth - 104);
   const selectedClip = project.clips.find((clip) => clip.id === selectedClipId) ?? null;
   const activeLyric = useMemo(() => {
     let active: LyricLine | null = null;
@@ -88,6 +102,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
     }
     return active;
   }, [lyricLines, currentTime]);
+  const visualizerIsActive = project.showVisualizer && project.clips.some((clip) => clip.track === "visualizer" && clip.enabled && currentTime >= clip.startSec && currentTime <= clip.startSec + clip.durationSec);
   const activeOverlay = project.clips.find((clip) =>
     clip.track === "overlay" && clip.enabled && currentTime >= clip.startSec && currentTime <= clip.startSec + clip.durationSec && clip.text?.trim(),
   );
@@ -210,7 +225,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
           </div>
           <div className={previewClass} style={{ aspectRatio: project.aspectRatio.replace(":", " / ") }}>
             <div className="studio-preview-grid" />
-            {project.showVisualizer && <div className="studio-preview-visualizer" aria-hidden="true">
+            {visualizerIsActive && <div className="studio-preview-visualizer" aria-hidden="true">
               {Array.from({ length: 32 }, (_, index) => <span key={index} style={{ height: `${10 + ((index * 17 + Math.floor(currentTime * 13)) % 75)}%` }} />)}
             </div>}
             {project.showLyrics && <div className="studio-preview-lyrics">{activeLyric?.text ?? "Your lyrics appear here"}</div>}
@@ -249,7 +264,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
       </div>
 
       <div className="studio-timeline-scroll" aria-label="Editable studio timeline">
-        <div className="studio-ruler" style={{ width: timelineWidth }}>
+        <div className="studio-ruler" style={{ width: timelineLaneWidth, marginLeft: 104 }}>
           {Array.from({ length: Math.max(2, Math.ceil(safeDuration / 5) + 1) }, (_, index) => index * 5).filter((time) => time <= safeDuration).map((time) => <button key={time} style={{ left: `${time / safeDuration * 100}%` }} onClick={() => seek(Math.min(time, duration || time))}>{timeLabel(time)}</button>)}
         </div>
         <div className="studio-track-list" style={{ width: timelineWidth }}>
@@ -269,7 +284,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
                 })}
                 {lyricLines.every((line) => line.startMs < 0) && <span className="studio-empty-lane">Import or timestamp lyrics to see cue points</span>}
               </div> : <div className="studio-track-lane" ref={(node) => { laneRefs.current[track.id as StudioTrackKind] = node; }}>
-                {track.id === "audio" && <div className="studio-audio-clip" style={{ left: 0, width: `${Math.min(100, (duration || 1) / safeDuration * 100)}%` }}><Music2 size={12} /><span>{trackName || "No source media"}</span></div>}
+                {track.id === "audio" && <div className="studio-audio-clip" style={{ left: 0, width: `${Math.min(100, (duration || 1) / safeDuration * 100)}%` }}><Music2 size={12} /><span>{trackName !== "Choose a track to begin" ? trackName : "No source media"}</span></div>}
                 {trackClips(track.id).map((clip) => {
                   const left = clip.startSec / safeDuration * 100;
                   const width = Math.max(1, Math.min(100 - left, clip.durationSec / safeDuration * 100));
@@ -282,7 +297,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
               </div>}
             </div>;
           })}
-          <div className="studio-playhead" style={{ left: `${Math.max(0, Math.min(100, currentTime / safeDuration * 100))}%` }}><span /></div>
+          <div className="studio-playhead" style={{ left: `${104 + Math.max(0, Math.min(1, currentTime / safeDuration)) * timelineLaneWidth}px` }}><span /></div>
         </div>
       </div>
       {selectedClip && selectedClip.track === "overlay" && <div className="studio-clip-inspector">
