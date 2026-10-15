@@ -12,6 +12,7 @@ const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/um
 export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
   const ffmpegRef = useRef<import("@ffmpeg/ffmpeg").FFmpeg | null>(null);
   const cancelledRef = useRef(false);
+  const [format, setFormat] = useState<"wav" | "mp3">("wav");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
@@ -70,29 +71,33 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
       const inputName = getExtractionInputName(sourceFile.name);
       await ffmpeg.writeFile(inputName, await fetchFile(sourceFile));
       if (cancelledRef.current) return;
-      setStatus("Extracting and encoding WAV…");
+      setStatus(`Extracting and encoding ${format.toUpperCase()}…`);
+      const outputFile = `extracted-audio.${format}`;
+      const outputArgs = format === "wav"
+        ? ["-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", "-f", "wav"]
+        : ["-c:a", "libmp3lame", "-q:a", "2", "-ar", "44100", "-ac", "2", "-f", "mp3"];
       const exitCode = await ffmpeg.exec([
         "-i", inputName,
         "-map", "0:a:0",
         "-vn",
-        "-c:a", "pcm_s16le",
-        "-ar", "44100",
-        "-ac", "2",
-        "-f", "wav",
-        "extracted-audio.wav",
+        ...outputArgs,
+        outputFile,
       ]);
       if (exitCode !== 0) throw new Error("The media engine could not decode this file. It may use an unsupported codec or contain no audio.");
       setStatus("Preparing download…");
-      const result = await ffmpeg.readFile("extracted-audio.wav");
+      const result = await ffmpeg.readFile(outputFile);
       if (typeof result === "string" || result.byteLength === 0) {
         throw new Error("The source did not produce a valid audio stream. Check that the video contains audio.");
       }
-      const wavBlob = new Blob([new Uint8Array(result).buffer as ArrayBuffer], { type: "audio/wav" });
-      const url = URL.createObjectURL(wavBlob);
+      const mimeType = format === "wav" ? "audio/wav" : "audio/mpeg";
+      const outputBlob = new Blob([new Uint8Array(result).buffer as ArrayBuffer], { type: mimeType });
+      const url = URL.createObjectURL(outputBlob);
       setOutputUrl(url);
-      setOutputName(`${sourceFile.name.replace(/\.[^.]+$/, "") || "wavy-extracted-audio"}.wav`);
+      setOutputName(`${sourceFile.name.replace(/\.[^.]+$/, "") || "wavy-extracted-audio"}.${format}`);
       setProgress(100);
-      setStatus(`WAV ready · ${formatBytes(wavBlob.size)} · 44.1 kHz stereo PCM`);
+      setStatus(format === "wav"
+        ? `WAV ready · ${formatBytes(outputBlob.size)} · 44.1 kHz stereo PCM`
+        : `MP3 ready · ${formatBytes(outputBlob.size)} · 44.1 kHz stereo · quality setting 2`);
     } catch (cause) {
       if (cancelledRef.current) return;
       const message = cause instanceof Error ? cause.message : "Unexpected conversion error.";
@@ -110,7 +115,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
     <section className="info-card extraction-card" aria-labelledby="extractor-heading">
       <div className="card-heading">
         <span><AudioLines size={17} /> AUDIO EXTRACTION</span>
-        <span className="small-status">LOCAL · WAV</span>
+        <span className="small-status">LOCAL · EXPORT</span>
       </div>
       <div className="extractor-source">
         <span className="extractor-icon"><Video size={19} /></span>
@@ -119,11 +124,12 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
           <span>{formatBytes(sourceFile.size)} · source stays on this device</span>
         </div>
       </div>
-      <p className="extractor-description">Extract the first audio stream from this video into a standard 44.1 kHz, 16-bit stereo WAV file. The conversion runs in your browser using FFmpeg WebAssembly; no media upload is performed by Wavy.</p>
+      <p className="extractor-description">Extract the first audio stream from this video to WAV (lossless PCM) or MP3. Conversion runs in your browser using FFmpeg WebAssembly; Wavy does not upload your media.</p>
+      <label className="extractor-format"><span>OUTPUT FORMAT</span><select value={format} onChange={(event) => setFormat(event.target.value as "wav" | "mp3")} disabled={busy}><option value="wav">WAV · lossless PCM</option><option value="mp3">MP3 · high quality</option></select></label>
       <div className="extractor-actions">
         <button className="primary-action" onClick={() => void extractWav()} disabled={busy}>
           {busy ? <LoaderCircle size={14} className="extractor-spinner" /> : <AudioLines size={14} />}
-          {busy ? "Extracting…" : "Extract audio to WAV"}
+          {busy ? "Extracting…" : `Extract audio to ${format.toUpperCase()}`}
         </button>
         {busy && <button className="secondary-action" onClick={cancel}><Square size={13} /> Cancel</button>}
         {outputUrl && <a className="secondary-action" href={outputUrl} download={outputName}><Download size={14} /> Download WAV</a>}
@@ -135,7 +141,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
       </div>}
       {status && !busy && <div className="lyrics-notice" role="status">{status}</div>}
       {error && <div className="lyrics-warning" role="alert">{error}</div>}
-      <div className="extractor-footnote">Current output: WAV only. MP3 encoding and additional codec coverage remain separate verified work; files over 200 MB are blocked to protect browser memory.</div>
+      <div className="extractor-footnote">WAV and MP3 output are available. MP3 codec support depends on the loaded FFmpeg WebAssembly build; unsupported encoder errors are shown without changing the source. Files over 200 MB are blocked to protect browser memory.</div>
     </section>
   );
 }
