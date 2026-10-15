@@ -223,3 +223,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10
 .extractor-spinner { animation: extractor-spin 1s linear infinite; }
 @keyframes extractor-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .extractor-spinner { animation: none; } }
+
+.extractor-format { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; color: #819488; font: 9px var(--mono); }
+.extractor-format select { max-width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; color: #c7dfce; background: #0b130e; font: 10px var(--mono); }
+.extractor-format select:disabled { opacity: .65; }
