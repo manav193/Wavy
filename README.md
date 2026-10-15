@@ -7,7 +7,9 @@ Wavy is a music player and lyric-video studio for web and Android, with real-tim
 - React + TypeScript + Vite
 - Local audio playback with Web Audio API analysis
 - Five Canvas visualizers: oscilloscope, spectrum, stepped, sawtooth, and decay
-- Editable lyrics text panel (manual lyrics in this first milestone)
+- LRC import/export with multi-timestamp, metadata, and offset support
+- Playback-synchronized lyric highlighting, line seek, manual timestamp editor, and preview offset
+- Optional NIMO-CORE text-formatting assist with an explicit review/apply step
 - Responsive dark CRT-inspired UI
 
 ## Requirements
@@ -26,17 +28,18 @@ npm run dev
 
 ```bash
 npm run typecheck
+npm test
 npm run build
 ```
 
 ## Roadmap
 
 1. [x] Establish the web foundation and working audio-reactive visualizer.
-2. [ ] Add timestamped lyrics/LRC import and synchronization.
+2. [x] Add timestamped lyrics/LRC import, synchronization, editing, and optional NIMO text assist.
 3. [ ] Build the studio timeline and real audio/video export.
 4. [ ] Package for Android with Capacitor and test on a device.
-5. [ ] Add a verified NIMO-CORE adapter and optional AI transcription/alignment provider.
+5. [x] Add a verified optional NIMO chat adapter for user-approved lyric formatting drafts.\n6. [ ] Add dedicated audio transcription/forced-alignment through a configured backend provider.
 
 ## NIMO integration
 
-NIMO integration is intentionally not faked in the initial foundation. NIMO-CORE currently documents `GET /api/health` and `POST /api/nimo/chat`; dedicated transcription/alignment must use a separately configured provider adapter unless that capability is verified in NIMO. Basic playback and visualization must work without NIMO or AI credentials.
+Wavy uses the documented `POST /api/nimo/chat` endpoint for optional text-only formatting assistance. Set `VITE_NIMO_API_BASE_URL` in a local `.env` to the NIMO-CORE base URL (for example `http://localhost:8787`). This variable must contain only a base URL, never a secret. Lyrics are sent only after the user explicitly clicks **NIMO assist**, and the result is marked as an unverified draft that must be reviewed.\n\nThe current NIMO chat contract does not accept audio bytes and is not a forced-alignment API. Wavy does not claim it transcribes audio or verifies timestamps. Dedicated transcription/forced alignment needs a separate backend provider adapter. Basic playback, visualization, and manual lyric sync work without NIMO.
