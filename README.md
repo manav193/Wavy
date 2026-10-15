@@ -7,6 +7,7 @@ Wavy is a music player and lyric-video studio for web and Android, with real-tim
 - React + TypeScript + Vite
 - Local MP3/audio playback and Web Audio API analysis
 - MP4/WebM/MOV/M4V media import where browser codecs support it; video audio is routed through the same analyser for live visualizations (no upload required)
+- In-browser video audio extraction to downloadable 44.1 kHz stereo PCM WAV using FFmpeg WebAssembly, with progress, cancellation, codec errors, and a 200 MB source limit (MP3 output and end-to-end media verification remain pending)
 - Five Canvas visualizers: oscilloscope, spectrum, stepped, sawtooth, and decay
 - LRC import/export with multi-timestamp, metadata, and offset support
 - Playback-synchronized lyric highlighting, line seek, manual timestamp editor, and preview offset
@@ -38,7 +39,7 @@ npm run build
 
 1. [x] Establish the web foundation and working audio-reactive visualizer.
 2. [x] Add timestamped lyrics/LRC import, synchronization, editing, and optional NIMO text assist.
-3. [ ] Build the studio timeline and real audio/video export, including downloadable extracted audio formats.
+3. [ ] Build the studio timeline and real lyric-video export; Phase 2 WAV extraction is implemented, with MP3 output and end-to-end media QA still pending.
 4. [ ] Package for Android with Capacitor and test on a device.
 5. [x] Add a verified optional NIMO chat adapter for user-approved lyric formatting drafts.
 6. [ ] Add dedicated audio transcription/forced-alignment through a configured backend provider.
