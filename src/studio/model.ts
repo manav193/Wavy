@@ -83,6 +83,7 @@ export function parseStudioProject(input: string): StudioProject {
     throw new Error("Project settings or timeline clips are invalid.");
   }
   if (raw.clips.length > 200) throw new Error("This project contains too many clips (maximum 200).");
+  const clipIds = new Set<string>();
   const clips = raw.clips.map((clip): StudioClip => {
     if (!clip || typeof clip !== "object") throw new Error("Project contains an invalid clip.");
     const item = clip as StudioClip;
@@ -95,6 +96,8 @@ export function parseStudioProject(input: string): StudioProject {
         (item.text !== undefined && (typeof item.text !== "string" || item.text.length > 500))) {
       throw new Error("Project contains a malformed clip.");
     }
+    if (clipIds.has(item.id)) throw new Error("Project contains duplicate clip IDs.");
+    clipIds.add(item.id);
     return { ...item };
   });
   return {
