@@ -10,7 +10,7 @@ Scope: repository tree, React/TypeScript application, lyrics parser/editor, NIMO
 1. **Lyrics editor state was lost when hidden.** The app conditionally unmounted the editor, discarding imported/pasted lyrics when the Lyrics navigation button was toggled. The editor now remains mounted inside a hidden wrapper, and its current line model is mirrored into Studio.
 2. **Timeline and lyrics editor were disconnected.** Added a timing-change bridge so a lyric cue adjusted from Studio updates the source lyrics editor and active preview.
 3. **Project settings and timeline had no durable project contract.** Added a versioned, typed project schema, validation on import, local browser autosave, and `.wavy.json` import/export.
-4. **Canvas dimensions needed conventional output-height semantics.** 1080p landscape maps to 1920×1080; portrait maps to 608×1080 at this pixel rounding; square maps to 1080×1080.
+4. **Canvas dimensions needed conventional output-height semantics.** 1080p landscape maps to 1920×1080; portrait maps to 1080×1920; square maps to 1080×1080.
 5. **Timeline ruler/playhead alignment.** Adjusted ruler offset and playhead placement to account for the sticky track-label column.
 6. **Duplicated visualizer implementation.** Extracted the Canvas renderer into a reusable component and now use the same analyser-backed renderer in the player and Studio preview.
 7. **Project-import hardening.** Rejects duplicate clip IDs and clamps imported clips to the current project duration.
