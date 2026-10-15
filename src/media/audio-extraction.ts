@@ -1,5 +1,7 @@
 export const MAX_EXTRACTION_BYTES = 200 * 1024 * 1024;
 
+export type ExtractionFormat = "wav" | "mp3";
+
 const VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov", "m4v", "mkv", "avi"]);
 
 export function getFileExtension(fileName: string): string {
@@ -14,6 +16,15 @@ export function isSupportedVideoFile(file: Pick<File, "name" | "type">): boolean
 export function getExtractionInputName(fileName: string): string {
   const extension = getFileExtension(fileName);
   return VIDEO_EXTENSIONS.has(extension) ? `source.${extension}` : "source.media";
+}
+
+export function getExtractionOutputName(fileName: string, format: ExtractionFormat): string {
+  const baseName = fileName.replace(/\.[^.]+$/, "").trim() || "wavy-extracted-audio";
+  return `${baseName}.${format}`;
+}
+
+export function getExtractionMimeType(format: ExtractionFormat): "audio/wav" | "audio/mpeg" {
+  return format === "wav" ? "audio/wav" : "audio/mpeg";
 }
 
 export function formatBytes(bytes: number): string {
