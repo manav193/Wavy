@@ -198,7 +198,7 @@ export default function App() {
           <div className="info-card"><div className="card-heading"><span><Radio size={17} /> SIGNAL METRICS</span><span className="small-status">REAL-TIME</span></div><div className="metric-grid"><div><span>ENGINE</span><strong>WEB AUDIO</strong></div><div><span>RENDERER</span><strong>CANVAS 2D</strong></div><div><span>VISUAL MODES</span><strong>05</strong></div></div></div>
         </section>
         {sourceFile && isSupportedVideoFile(sourceFile) && <AudioExtractor key={`${sourceFile.name}-${sourceFile.size}-${sourceFile.lastModified}`} sourceFile={sourceFile} />}
-        <StudioTimeline currentTime={currentTime} duration={duration} seek={seek} trackName={trackName} lyricLines={lyricLines} onMoveLyric={handleMoveLyric} />
+        <StudioTimeline currentTime={currentTime} duration={duration} seek={seek} trackName={trackName} lyricLines={lyricLines} onMoveLyric={handleMoveLyric} analyser={analyserRef.current} playing={playing} visualizerMode={mode} />
         <div hidden={!lyricsOpen}>
           <LyricsWorkspace currentTime={currentTime} duration={duration} seek={seek} onLinesChange={handleLinesChange} timelineTimingEdit={timelineTimingEdit} />
         </div>
