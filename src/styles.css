@@ -78,7 +78,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, label:focus-v
 .timeline input, .volume-control input { width: 100%; accent-color: var(--green); cursor: pointer; }
 .volume-control { display: flex; align-items: center; gap: 7px; color: #8fa696; }
 .volume-control input { min-width: 0; }
-audio { display: none; }
+audio, .media-source { display: none; }
 .error-message { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; padding: 11px 13px; border: 1px solid rgba(255,130,100,.28); background: rgba(255,100,70,.07); color: #ffb5a2; border-radius: 8px; font-size: 12px; }
 .error-message button, .lyrics-footer button { border: 0; background: transparent; color: var(--green); font-size: 11px; }
 .lower-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 13px; margin-top: 13px; }
