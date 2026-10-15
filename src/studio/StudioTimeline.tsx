@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { Download, FileJson, Film, Grid2X2, MoveHorizontal, Music2, Plus, RotateCcw, Scissors, Settings2, Sparkles, Type, Upload, Waves } from "lucide-react";
+import { Download, Film, Grid2X2, MoveHorizontal, Music2, Plus, RotateCcw, Scissors, Settings2, Sparkles, Type, Upload, Waves } from "lucide-react";
 import type { LyricLine } from "../lyrics/lrc";
 import {
   createDefaultProject,
@@ -268,7 +268,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
                   }}>{line.text}</button>;
                 })}
                 {lyricLines.every((line) => line.startMs < 0) && <span className="studio-empty-lane">Import or timestamp lyrics to see cue points</span>}
-              </div> : <div className="studio-track-lane" ref={(node) => { laneRefs.current[track.id] = node; }}>
+              </div> : <div className="studio-track-lane" ref={(node) => { laneRefs.current[track.id as StudioTrackKind] = node; }}>
                 {track.id === "audio" && <div className="studio-audio-clip" style={{ left: 0, width: `${Math.min(100, (duration || 1) / safeDuration * 100)}%` }}><Music2 size={12} /><span>{trackName || "No source media"}</span></div>}
                 {trackClips(track.id).map((clip) => {
                   const left = clip.startSec / safeDuration * 100;
