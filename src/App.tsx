@@ -154,7 +154,7 @@ function AudioCanvas({ analyser, mode, playing }: {
 }
 
 export default function App() {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLVideoElement>(null);
   const contextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -196,8 +196,8 @@ export default function App() {
   const chooseFile = (file?: File) => {
     if (!file) return;
     setError("");
-    if (!file.type.startsWith("audio/") && !/\.(mp3|wav|ogg|m4a|aac|flac|opus)$/i.test(file.name)) {
-      setError("Choose a supported audio file (MP3, WAV, OGG, M4A, AAC, FLAC or OPUS where supported).");
+    if (!file.type.startsWith("audio/") && !file.type.startsWith("video/") && !/\.(mp3|wav|ogg|m4a|aac|flac|opus|mp4|webm|mov|m4v)$/i.test(file.name)) {
+      setError("Choose an audio file (MP3, WAV, OGG, M4A, AAC, FLAC, OPUS) or a video file (MP4, WebM, MOV, M4V) supported by this browser.");
       return;
     }
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
@@ -280,7 +280,7 @@ export default function App() {
         <header className="topbar">
           <div><div className="eyebrow">PERSONAL AUDIO LAB</div><h1>Sound, visualized.</h1></div>
           <label className="import-button" htmlFor="audio-input"><FileAudio size={17} /> Import audio</label>
-          <input id="audio-input" className="visually-hidden" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.opus" onChange={(event) => chooseFile(event.target.files?.[0])} />
+          <input id="audio-input" className="visually-hidden" type="file" accept="audio/*,video/mp4,video/webm,video/quicktime,.mp3,.wav,.ogg,.m4a,.aac,.flac,.opus,.mp4,.webm,.mov,.m4v" onChange={(event) => chooseFile(event.target.files?.[0])} />
         </header>
 
         <section className="monitor-panel">
@@ -299,7 +299,7 @@ export default function App() {
 
         <section className="player-panel">
           <div className="track-art"><div className="art-rings"><Waves size={37} /></div><span>WAVY AUDIO</span></div>
-          <div className="track-info"><div className="eyebrow">NOW PLAYING</div><h2>{trackName}</h2><p>{trackUrl ? "Local audio · Ready to play" : "Import a local audio file to start"}</p></div>
+          <div className="track-info"><div className="eyebrow">NOW PLAYING</div><h2>{trackName}</h2><p>{trackUrl ? ( /\.(mp4|webm|mov|m4v)$/i.test(trackName) ? "Local video · audio track routed to visualizer" : "Local audio · Ready to play") : "Import an MP3 or video with an audio track"}</p></div>
           <div className="player-controls">
             <div className="transport">
               <button className="icon-button" aria-label="Restart track" onClick={() => seek(0)}><SkipBack size={19} /></button>
@@ -309,7 +309,7 @@ export default function App() {
             <div className="timeline"><span>{formatTime(currentTime)}</span><input aria-label="Seek" type="range" min={0} max={Math.max(duration, 0.01)} step={0.1} value={Math.min(currentTime, duration || 0)} onChange={(e) => seek(Number(e.target.value))} /><span>{formatTime(duration)}</span></div>
           </div>
           <div className="volume-control"><Volume2 size={18} /><input aria-label="Volume" type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(Number(e.target.value))} /></div>
-          <audio ref={audioRef} crossOrigin="anonymous" preload="metadata" />
+          <video ref={audioRef} className="media-source" playsInline preload="metadata" aria-label="Local media source for audio playback and analysis" />
         </section>
 
         {error && <div className="error-message" role="alert">{error}<button onClick={() => setError("")}>Dismiss</button></div>}
