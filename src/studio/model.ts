@@ -43,7 +43,7 @@ export function createDefaultProject(): StudioProject {
     pixelsPerSecond: 42,
     clips: [
       { id: "audio-main", track: "audio", name: "Source audio", startSec: 0, durationSec: 0, enabled: true },
-      { id: "visualizer-main", track: "visualizer", name: "Audio visualizer", startSec: 0, durationSec: 0, enabled: true },
+      { id: "visualizer-main", track: "visualizer", name: "Audio visualizer", startSec: 0, durationSec: 60, enabled: true },
       { id: "overlay-title", track: "overlay", name: "Title overlay", startSec: 0, durationSec: 5, enabled: true, text: "YOUR TITLE" },
     ],
   };
