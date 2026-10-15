@@ -4,6 +4,8 @@ import {
   Pause, Play, Radio, SkipBack, SkipForward, Volume2, Waves,
 } from "lucide-react";
 import LyricsWorkspace from "./lyrics/LyricsWorkspace";
+import type { LyricLine } from "./lyrics/lrc";
+import StudioTimeline from "./studio/StudioTimeline";
 import AudioExtractor from "./media/AudioExtractor";
 import { isSupportedVideoFile } from "./media/audio-extraction";
 
@@ -170,6 +172,8 @@ export default function App() {
   const [volume, setVolume] = useState(0.8);
   const [mode, setMode] = useState<VisualizerMode>("oscilloscope");
   const [lyricsOpen, setLyricsOpen] = useState(true);
+  const [lyricLines, setLyricLines] = useState<LyricLine[]>([]);
+  const [timelineTimingEdit, setTimelineTimingEdit] = useState<{ id: string; startMs: number; nonce: number } | null>(null);
   const [error, setError] = useState("");
 
   const setupAudioGraph = useCallback(async () => {
@@ -268,6 +272,11 @@ export default function App() {
     if (audioRef.current) audioRef.current.currentTime = value;
   };
 
+  const handleLinesChange = useCallback((nextLines: LyricLine[]) => setLyricLines(nextLines), []);
+  const handleMoveLyric = useCallback((id: string, startMs: number) => {
+    setTimelineTimingEdit({ id, startMs, nonce: Date.now() });
+  }, []);
+
 
   return (
     <div className="app-shell">
@@ -322,7 +331,10 @@ export default function App() {
           <div className="info-card"><div className="card-heading"><span><Radio size={17} /> SIGNAL METRICS</span><span className="small-status">REAL-TIME</span></div><div className="metric-grid"><div><span>ENGINE</span><strong>WEB AUDIO</strong></div><div><span>RENDERER</span><strong>CANVAS 2D</strong></div><div><span>VISUAL MODES</span><strong>05</strong></div></div></div>
         </section>
         {sourceFile && isSupportedVideoFile(sourceFile) && <AudioExtractor key={`${sourceFile.name}-${sourceFile.size}-${sourceFile.lastModified}`} sourceFile={sourceFile} />}
-        {lyricsOpen && <LyricsWorkspace currentTime={currentTime} duration={duration} seek={seek} />}
+        <StudioTimeline currentTime={currentTime} duration={duration} seek={seek} trackName={trackName} lyricLines={lyricLines} onMoveLyric={handleMoveLyric} />
+        <div hidden={!lyricsOpen}>
+          <LyricsWorkspace currentTime={currentTime} duration={duration} seek={seek} onLinesChange={handleLinesChange} timelineTimingEdit={timelineTimingEdit} />
+        </div>
         <footer>WAVY AUDIO SYSTEMS <span>BUILT FOR THE RHYTHM</span><span>LOCAL-FIRST · V0.1</span></footer>
       </main>
     </div>
