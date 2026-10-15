@@ -40,13 +40,15 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 
 ## Phase 3 — Lyric-video studio timeline
 
-- [ ] Add project settings: 9:16, 16:9, and 1:1; resolution and frame rate.
-- [ ] Add track lanes for audio, background/visualizer, lyrics, and optional overlays.
-- [ ] Add timeline zoom, snapping, split/move, duration handles, and preview seeking.
-- [ ] Reuse the same visualizer and lyric animation renderers for preview and export.
-- [ ] Add background gradients/images/video, font controls, text outlines/shadows, and safe-area guides.
+- [x] Add project settings: 9:16, 16:9, and 1:1; 720p/1080p output height and 24/30/60 FPS.
+- [x] Add separate audio, visualizer, lyrics-cue, and text-overlay timeline lanes.
+- [x] Add timeline zoom, 250 ms snapping, draggable/resizable visualizer and overlay clips, lyric cue seeking and direct timestamp editing.
+- [x] Add a composition preview for background presets, active lyric cue, timed text overlays, and visualizer-layer timing.
+- [x] Autosave project metadata locally and support versioned `.wavy.json` project import/export with schema validation.
+- [ ] Share one deterministic renderer between preview and final video export (Phase 4).
+- [ ] Add image/video backgrounds, typography controls, text outlines/shadows, safe-area guides, and more complete layer styling.
 
-**Acceptance:** timeline edits persist in a project file and preview at the correct timestamp.
+**Acceptance status:** the editable project/timeline foundation and preview are implemented. Final video rendering, media relinking, audio trimming, and full browser interaction tests remain outstanding; a project JSON is not a rendered video.
 
 ## Phase 4 — MP4 lyric-video export
 
