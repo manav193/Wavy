@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Activity, Disc3, FileAudio, Headphones, ListMusic,
+  Activity, Disc3, FileAudio, ListMusic,
   Pause, Play, Radio, SkipBack, SkipForward, Volume2, Waves,
 } from "lucide-react";
+import LyricsWorkspace from "./lyrics/LyricsWorkspace";
 
 type VisualizerMode = "oscilloscope" | "spectrum" | "stepped" | "sawtooth" | "decay";
 
@@ -165,7 +166,6 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(0.8);
   const [mode, setMode] = useState<VisualizerMode>("oscilloscope");
-  const [lyrics, setLyrics] = useState("");
   const [lyricsOpen, setLyricsOpen] = useState(true);
   const [error, setError] = useState("");
 
@@ -264,7 +264,6 @@ export default function App() {
     if (audioRef.current) audioRef.current.currentTime = value;
   };
 
-  const lyricLines = lyrics.split("\n").map((line) => line.trim()).filter(Boolean);
 
   return (
     <div className="app-shell">
