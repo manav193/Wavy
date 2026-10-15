@@ -25,11 +25,27 @@ export default function LyricsWorkspace({ currentTime, duration, seek }: LyricsW
   const [message, setMessage] = useState("");
   const [warning, setWarning] = useState("");
   const [showEditor, setShowEditor] = useState(true);
+  const [animationPreset, setAnimationPreset] = useState<"pop" | "bounce" | "fill" | "fade" | "slide">("pop");
+  const animationPresets = [
+    { id: "pop", label: "Pop + highlight" },
+    { id: "bounce", label: "Bounce" },
+    { id: "fill", label: "Color fill" },
+    { id: "fade", label: "Blur reveal" },
+    { id: "slide", label: "Slide reveal" },
+  ] as const;
   const activeIndex = useMemo(
     () => activeLyricIndex(lines, Math.max(0, currentTime * 1000 - offsetMs)),
     [lines, currentTime, offsetMs],
   );
   const activeId = activeIndex >= 0 ? lines[activeIndex]?.id : null;
+  const previewTimeMs = Math.max(0, currentTime * 1000 - offsetMs);
+  const activeLine = activeIndex >= 0 ? lines[activeIndex] : null;
+  const nextTimedLine = activeIndex >= 0 ? lines.slice(activeIndex + 1).find((line) => line.startMs >= 0) : null;
+  const wordList = activeLine?.text.trim().split(/\s+/).filter(Boolean) ?? [];
+  const activeLineStart = activeLine?.startMs ?? 0;
+  const lineEnd = nextTimedLine?.startMs ?? Math.max(activeLineStart + 2500, duration * 1000);
+  const lineProgress = Math.max(0, Math.min(0.999, (previewTimeMs - activeLineStart) / Math.max(1, lineEnd - activeLineStart)));
+  const activeWordIndex = wordList.length ? Math.min(wordList.length - 1, Math.floor(lineProgress * wordList.length)) : -1;
   const selectedLine = lines.find((line) => line.id === selectedId) ?? null;
   const activeRef = useRef<HTMLButtonElement>(null);
 
@@ -184,9 +200,17 @@ export default function LyricsWorkspace({ currentTime, duration, seek }: LyricsW
         <button onClick={() => setOffsetMs(0)} aria-label="Reset lyric offset"><RefreshCw size={13} /> Reset</button>
       </div>
 
+      <div className="karaoke-controls" aria-label="Karaoke animation preset">
+        <div className="karaoke-controls-heading"><span className="eyebrow">WORD ANIMATION PRESET</span><span className="karaoke-estimate">Estimated word timing</span></div>
+        <div className="karaoke-preset-list">
+          {animationPresets.map((preset) => <button key={preset.id} className={animationPreset === preset.id ? "karaoke-preset selected" : "karaoke-preset"} aria-pressed={animationPreset === preset.id} onClick={() => setAnimationPreset(preset.id)}>{preset.label}</button>)}
+        </div>
+      </div>
       <div className="lyric-current-preview">
         <span className="eyebrow">CURRENT LYRIC · {formatLrcTimestamp(currentTime * 1000)}</span>
-        <strong>{activeIndex >= 0 ? lines[activeIndex].text : "No timed line at this position"}</strong>
+        <strong className={`karaoke-word-stage preset-${animationPreset}`} aria-live="off">
+          {activeLine ? wordList.map((word, index) => <span key={`${activeLine.id}-${index}`} className={index === activeWordIndex ? "karaoke-word is-word-active" : "karaoke-word"} key={`${activeLine.id}-${index}`}>{word}{index < wordList.length - 1 ? " " : ""}</span>) : "No timed line at this position"}
+        </strong>
       </div>
 
       <div className="lyric-line-list" aria-label="Timestamped lyrics">
