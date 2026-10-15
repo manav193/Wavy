@@ -39,7 +39,7 @@ npm run build
 
 1. [x] Establish the web foundation and working audio-reactive visualizer.
 2. [x] Add timestamped lyrics/LRC import, synchronization, editing, and optional NIMO text assist.
-3. [ ] Build the studio timeline and real lyric-video export; Phase 2 WAV extraction is implemented, with MP3 output and end-to-end media QA still pending.
+3. [ ] Build the studio timeline and real lyric-video export; Phase 2 WAV extraction is implemented, with MP3 option added; encoder/output verification and end-to-end media QA remain pending.
 4. [ ] Package for Android with Capacitor and test on a device.
 5. [x] Add a verified optional NIMO chat adapter for user-approved lyric formatting drafts.
 6. [ ] Add dedicated audio transcription/forced-alignment through a configured backend provider.
