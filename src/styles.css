@@ -181,3 +181,25 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10
   .lyric-line { grid-template-columns: 72px minmax(0,1fr) auto; gap: 7px; padding: 8px 6px; }
   .line-text-field { grid-template-columns: 1fr; gap: 5px; }
 }
+
+
+/* Word-level karaoke preview presets. Word timing is estimated from line intervals until true word timestamps exist. */
+.karaoke-controls { margin: 12px 0 0; padding: 11px; border: 1px solid var(--line); border-radius: 8px; background: rgba(0,0,0,.12); }
+.karaoke-controls-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px; }
+.karaoke-estimate { color: var(--amber); font: 8px var(--mono); }
+.karaoke-preset-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.karaoke-preset { border: 1px solid rgba(128,255,179,.14); border-radius: 6px; padding: 7px 9px; background: rgba(128,255,179,.025); color: #8ea596; font-size: 9px; }
+.karaoke-preset.selected { color: #07100c; background: var(--green); border-color: var(--green); font-weight: 800; }
+.karaoke-word-stage { display: block; overflow-wrap: anywhere; }
+.karaoke-word { display: inline; transition: color .16s ease, text-shadow .16s ease, background-color .16s ease; border-radius: .22em; }
+.karaoke-word.is-word-active { color: var(--green-bright); font-weight: 800; }
+.preset-pop .karaoke-word.is-word-active { display: inline-block; padding: 0 .18em; color: #07100c; background: var(--green); box-shadow: 0 0 22px rgba(128,255,179,.2); animation: karaoke-pop .22s cubic-bezier(.2,.9,.3,1.25); }
+.preset-bounce .karaoke-word.is-word-active { display: inline-block; animation: karaoke-bounce .32s ease-out; text-shadow: 0 0 16px rgba(128,255,179,.5); }
+.preset-fill .karaoke-word.is-word-active { color: #07100c; background: var(--green); box-shadow: 0 0 12px rgba(128,255,179,.16); }
+.preset-fade .karaoke-word.is-word-active { animation: karaoke-fade .28s ease-out; text-shadow: 0 0 18px rgba(128,255,179,.5); }
+.preset-slide .karaoke-word.is-word-active { display: inline-block; animation: karaoke-slide .25s ease-out; color: var(--green-bright); text-shadow: 0 0 14px rgba(128,255,179,.35); }
+@keyframes karaoke-pop { from { transform: scale(.82); opacity: .65; } to { transform: scale(1); opacity: 1; } }
+@keyframes karaoke-bounce { 0% { transform: translateY(5px) scale(.9); } 70% { transform: translateY(-3px) scale(1.04); } 100% { transform: translateY(0) scale(1); } }
+@keyframes karaoke-fade { from { filter: blur(5px); opacity: .25; } to { filter: blur(0); opacity: 1; } }
+@keyframes karaoke-slide { from { transform: translateY(7px); opacity: .25; } to { transform: translateY(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .karaoke-word, .karaoke-word.is-word-active { animation: none !important; transition: none !important; } }
