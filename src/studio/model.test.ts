@@ -16,7 +16,7 @@ describe("Wavy Studio project model", () => {
 
   it("maps aspect ratios to expected 1080 output dimensions", () => {
     expect(getCanvasDimensions("16:9", 1080)).toEqual({ width: 1920, height: 1080 });
-    expect(getCanvasDimensions("9:16", 1080)).toEqual({ width: 608, height: 1080 });
+    expect(getCanvasDimensions("9:16", 1080)).toEqual({ width: 1080, height: 1920 });
     expect(getCanvasDimensions("1:1", 720)).toEqual({ width: 720, height: 720 });
   });
 
