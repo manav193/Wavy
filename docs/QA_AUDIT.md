@@ -38,3 +38,12 @@ Scope: repository tree, React/TypeScript application, lyrics parser/editor, NIMO
 ## Validation status
 
 GitHub Actions typecheck/test/build checks are triggered by pushes. Their results should be checked against the latest commit before calling the release verified. No claim of successful browser E2E or media-output validation is made by this audit document.
+
+## Follow-up verification pass — 2026-10-16
+
+- **Fixed an export-label mismatch:** the MP3 encoder path could produce an MP3 file while the download link always displayed “Download WAV.” The link now reflects the selected output format.
+- **Centralized output metadata:** WAV/MP3 MIME types and output filenames are derived through tested helpers, reducing the chance that the chosen encoder, Blob type, filename extension, and visible label drift apart.
+- **Regression coverage added:** tests now check WAV and MP3 filename extensions, MIME types, and fallback naming for an input whose basename is empty.
+- **Still not verified in a real browser:** the FFmpeg WebAssembly core is loaded from a CDN, and this environment cannot run a browser media fixture or decode the produced output. The output must still be checked for container signature, duration, sample rate/channels, audio content, cancellation behavior, and MP3 encoder availability.
+- **Reproducible install remains a release-hardening item:** no package-lock.json is present. A lockfile should be generated with the project's supported Node/npm toolchain and CI changed from npm install to npm ci only after the lockfile is generated and verified. This environment could not reach the npm/GitHub network to generate and validate it safely.
+- **Studio browser interaction tests remain outstanding:** model-level unit tests do not exercise pointer dragging/resizing, lyric cue double-click editing, autosave, or import/export through the rendered UI.
