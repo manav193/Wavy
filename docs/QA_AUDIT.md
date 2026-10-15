@@ -12,8 +12,10 @@ Scope: repository tree, React/TypeScript application, lyrics parser/editor, NIMO
 3. **Project settings and timeline had no durable project contract.** Added a versioned, typed project schema, validation on import, local browser autosave, and `.wavy.json` import/export.
 4. **Canvas dimensions needed conventional output-height semantics.** 1080p landscape maps to 1920×1080; portrait maps to 608×1080 at this pixel rounding; square maps to 1080×1080.
 5. **Timeline ruler/playhead alignment.** Adjusted ruler offset and playhead placement to account for the sticky track-label column.
-6. **Type safety.** Imported project settings are narrowed only after validation; timeline pointer interactions use explicit React pointer event types.
-7. **Regression tests.** Added project schema, dimension, snapping, clip-boundary, import-validation, and media-helper unit tests.
+6. **Duplicated visualizer implementation.** Extracted the Canvas renderer into a reusable component and now use the same analyser-backed renderer in the player and Studio preview.
+7. **Project-import hardening.** Rejects duplicate clip IDs and clamps imported clips to the current project duration.
+8. **Type safety.** Imported project settings are narrowed only after validation; timeline pointer interactions use explicit React pointer event types.
+9. **Regression tests.** Added project schema, dimension, snapping, clip-boundary, import-validation, and media-helper unit tests.
 
 ### Existing architecture reviewed
 
@@ -21,7 +23,7 @@ Scope: repository tree, React/TypeScript application, lyrics parser/editor, NIMO
 - Lyrics use LRC millisecond timings. The word-level karaoke preview still estimates word timing from adjacent line intervals; it is not forced alignment.
 - NIMO is an optional text-only formatting assist and its response is presented as an unverified draft.
 - Video audio extraction is a client-side FFmpeg WebAssembly flow. The implementation is not equivalent to verified output until browser fixtures validate the resulting WAV/MP3 files.
-- The Studio preview is a composition preview driven by project time. It is not the Phase 4 deterministic MP4 renderer.
+- The Studio preview shares the live Canvas audio visualizer and follows the current playback clock for lyric cues and overlays. It is not the Phase 4 deterministic MP4 renderer.
 
 ## Known gaps / follow-up
 
