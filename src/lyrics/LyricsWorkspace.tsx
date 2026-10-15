@@ -7,6 +7,8 @@ interface LyricsWorkspaceProps {
   currentTime: number;
   duration: number;
   seek: (seconds: number) => void;
+  onLinesChange?: (lines: LyricLine[]) => void;
+  timelineTimingEdit?: { id: string; startMs: number; nonce: number } | null;
 }
 
 function makeId() {
@@ -15,7 +17,7 @@ function makeId() {
     : `line-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export default function LyricsWorkspace({ currentTime, duration, seek }: LyricsWorkspaceProps) {
+export default function LyricsWorkspace({ currentTime, duration, seek, onLinesChange, timelineTimingEdit }: LyricsWorkspaceProps) {
   const [lines, setLines] = useState<LyricLine[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [offsetMs, setOffsetMs] = useState(0);
@@ -52,6 +54,24 @@ export default function LyricsWorkspace({ currentTime, duration, seek }: LyricsW
   useEffect(() => {
     activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [activeId]);
+
+  useEffect(() => {
+    onLinesChange?.(lines);
+  }, [lines, onLinesChange]);
+
+  useEffect(() => {
+    if (!timelineTimingEdit) return;
+    setLines((current) => current.map((line) => line.id === timelineTimingEdit.id
+      ? { ...line, startMs: Math.max(0, Math.round(timelineTimingEdit.startMs)) }
+      : line).sort((a, b) => {
+        if (a.startMs < 0) return 1;
+        if (b.startMs < 0) return -1;
+        return a.startMs - b.startMs;
+      }));
+    setSelectedId(timelineTimingEdit.id);
+    setMessage("Lyric cue timing updated from the Studio timeline.");
+    setWarning("");
+  }, [timelineTimingEdit]);
 
   const importLrc = async (file?: File) => {
     if (!file) return;
