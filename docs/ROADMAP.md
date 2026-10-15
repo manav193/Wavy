@@ -31,12 +31,12 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 
 - [x] Add browser-supported video containers as media inputs and route their audio through Web Audio analysis.
 - [x] Add a dedicated FFmpeg.wasm conversion adapter for client-side conversion where device memory permits.
-- [x] Extract the first audio stream from supported video containers to downloadable 44.1 kHz stereo PCM WAV. MP3 encoding remains pending.
+- [x] Extract the first audio stream from supported video containers to downloadable 44.1 kHz stereo PCM WAV. MP3 encoding option added via libmp3lame; output verification on the loaded WebAssembly build remains pending.
 - [x] Provide progress, cancellation, codec/format errors, and a 200 MB source-file guard.
 - [x] Keep source files local by default; the conversion does not upload media.
 - [ ] Add browser-level media fixtures/tests for unsupported codecs, silent videos, cancellation, and output validity. Pure file-helper tests are included; end-to-end export verification is still pending.
 
-**Acceptance status:** the WAV extraction flow and download are implemented, but the phase is not considered complete until browser-level fixture tests verify output duration/audio content and edge cases. MP3 output is also pending.
+**Acceptance status:** the WAV extraction flow and download are implemented, but the phase is not considered complete until browser-level fixture tests verify output duration/audio content and edge cases. MP3 is implemented as an option, but encoder availability and output validity still require browser-level verification.
 
 ## Phase 3 — Lyric-video studio timeline
 
