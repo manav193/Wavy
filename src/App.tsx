@@ -4,6 +4,8 @@ import {
   Pause, Play, Radio, SkipBack, SkipForward, Volume2, Waves,
 } from "lucide-react";
 import LyricsWorkspace from "./lyrics/LyricsWorkspace";
+import AudioExtractor from "./media/AudioExtractor";
+import { isSupportedVideoFile } from "./media/audio-extraction";
 
 type VisualizerMode = "oscilloscope" | "spectrum" | "stepped" | "sawtooth" | "decay";
 
@@ -160,6 +162,7 @@ export default function App() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const [trackName, setTrackName] = useState("Choose a track to begin");
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [trackUrl, setTrackUrl] = useState("");
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -201,6 +204,7 @@ export default function App() {
       return;
     }
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    setSourceFile(file);
     const url = URL.createObjectURL(file);
     objectUrlRef.current = url;
     setTrackUrl(url);
@@ -299,7 +303,7 @@ export default function App() {
 
         <section className="player-panel">
           <div className="track-art"><div className="art-rings"><Waves size={37} /></div><span>WAVY AUDIO</span></div>
-          <div className="track-info"><div className="eyebrow">NOW PLAYING</div><h2>{trackName}</h2><p>{trackUrl ? ( /\.(mp4|webm|mov|m4v)$/i.test(trackName) ? "Local video · audio track routed to visualizer" : "Local audio · Ready to play") : "Import an MP3 or video with an audio track"}</p></div>
+          <div className="track-info"><div className="eyebrow">NOW PLAYING</div><h2>{trackName}</h2><p>{trackUrl ? (sourceFile && isSupportedVideoFile(sourceFile) ? "Local video · audio routed to visualizer and extraction available" : "Local audio · Ready to play") : "Import an MP3 or video with an audio track"}</p></div>
           <div className="player-controls">
             <div className="transport">
               <button className="icon-button" aria-label="Restart track" onClick={() => seek(0)}><SkipBack size={19} /></button>
@@ -317,6 +321,7 @@ export default function App() {
         <section className="lower-grid">
           <div className="info-card"><div className="card-heading"><span><Radio size={17} /> SIGNAL METRICS</span><span className="small-status">REAL-TIME</span></div><div className="metric-grid"><div><span>ENGINE</span><strong>WEB AUDIO</strong></div><div><span>RENDERER</span><strong>CANVAS 2D</strong></div><div><span>VISUAL MODES</span><strong>05</strong></div></div></div>
         </section>
+        {sourceFile && isSupportedVideoFile(sourceFile) && <AudioExtractor key={`${sourceFile.name}-${sourceFile.size}-${sourceFile.lastModified}`} sourceFile={sourceFile} />}
         {lyricsOpen && <LyricsWorkspace currentTime={currentTime} duration={duration} seek={seek} />}
         <footer>WAVY AUDIO SYSTEMS <span>BUILT FOR THE RHYTHM</span><span>LOCAL-FIRST · V0.1</span></footer>
       </main>
