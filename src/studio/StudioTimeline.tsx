@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Download, FileJson, Film, Grid2X2, MoveHorizontal, Music2, Plus, RotateCcw, Scissors, Settings2, Sparkles, Type, Upload, Waves } from "lucide-react";
 import type { LyricLine } from "../lyrics/lrc";
 import {
@@ -102,7 +102,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
       : clip),
   }));
 
-  const beginDrag = (event: React.PointerEvent<HTMLButtonElement>, clip: StudioClip, mode: DragMode = "move") => {
+  const beginDrag = (event: ReactPointerEvent<HTMLElement>, clip: StudioClip, mode: DragMode = "move") => {
     if (event.button !== 0 || clip.track === "audio") return;
     event.preventDefault();
     event.stopPropagation();
@@ -275,7 +275,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
                   const width = Math.max(1, Math.min(100 - left, clip.durationSec / safeDuration * 100));
                   return <button key={clip.id} className={`studio-clip studio-clip-${clip.track} ${selectedClipId === clip.id ? "selected" : ""} ${clip.enabled ? "" : "disabled"}`} style={{ left: `${left}%`, width: `${width}%` }} onClick={() => setSelectedClipId(clip.id)} onPointerDown={(event) => beginDrag(event, clip)} onPointerMove={(event) => moveDrag(event, track.id as StudioTrackKind)} onPointerUp={endDrag} onPointerCancel={endDrag} onLostPointerCapture={endDrag} title={`${clip.name} · ${timeLabel(clip.startSec)}`}>
                     <span className="studio-clip-title">{track.id === "visualizer" ? <Waves size={12} /> : <Type size={12} />}{clip.name}</span>
-                    <span className="studio-clip-resize" role="presentation" onPointerDown={(event) => beginDrag(event as unknown as React.PointerEvent<HTMLButtonElement>, clip, "resize")} />
+                    <span className="studio-clip-resize" role="presentation" onPointerDown={(event) => beginDrag(event, clip, "resize")} />
                   </button>;
                 })}
                 {track.id === "visualizer" && !trackClips("visualizer").length && <span className="studio-empty-lane">Enable or add a visualizer layer</span>}
