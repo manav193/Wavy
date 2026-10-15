@@ -8,8 +8,8 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [x] Local audio playback, seeking, volume, and five Canvas visualizer modes.
 - [x] LRC import/export, line-level timing editor, preview offset, and NIMO text-formatting adapter.
 - [x] MP3/audio file selection and browser-supported MP4/WebM/MOV/M4V media input; media audio is routed to Web Audio analysis.
-- [ ] Word-level karaoke animation engine — discussed/design direction only; not yet shipped.
-- [ ] Audio extraction/export — not yet shipped. Media playback/analysis is not the same as creating a separate downloadable audio file.
+- [x] Five selectable karaoke preview presets with estimated line-interval word activation; true word timestamps and forced alignment remain pending.
+- [x] Local FFmpeg.wasm audio extraction flow with WAV and MP3 options; browser-level output and encoder verification remain pending.
 - [ ] Full lyric-video rendering/export — not yet shipped.
 
 ## Phase 1 — Word-level karaoke animation engine
