@@ -50,7 +50,7 @@ export function createDefaultProject(): StudioProject {
 }
 
 export function getCanvasDimensions(ratio: StudioAspectRatio, resolution: StudioResolution): { width: number; height: number } {
-  if (ratio === "9:16") return { width: Math.round(resolution * 9 / 16), height: resolution };
+  if (ratio === "9:16") return { width: resolution, height: Math.round(resolution * 16 / 9) };
   if (ratio === "1:1") return { width: resolution, height: resolution };
   return { width: Math.round(resolution * 16 / 9), height: resolution };
 }
