@@ -37,6 +37,12 @@ describe("Wavy Studio project model", () => {
     expect(parseStudioProject(JSON.stringify(project))).toEqual(project);
   });
 
+  it("rejects duplicate clip IDs in imported projects", () => {
+    const project = createDefaultProject();
+    project.clips.push({ ...project.clips[0], name: "Duplicate ID" });
+    expect(() => parseStudioProject(JSON.stringify(project))).toThrow(/duplicate clip IDs/);
+  });
+
   it("rejects unknown schema versions, malformed settings, and excessive clips", () => {
     expect(() => parseStudioProject(JSON.stringify({ schemaVersion: 9 }))).toThrow(/Unsupported project version/);
     expect(() => parseStudioProject("{oops")).toThrow(/valid JSON/);
