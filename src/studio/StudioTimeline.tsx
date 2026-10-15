@@ -78,6 +78,11 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
   }, [project]);
 
   useEffect(() => {
+    if (selectedClipId && project.clips.some((clip) => clip.id === selectedClipId)) return;
+    setSelectedClipId(project.clips.find((clip) => clip.track === "overlay")?.id ?? null);
+  }, [project.clips, selectedClipId]);
+
+  useEffect(() => {
     if (duration <= 0) return;
     setProject((current) => {
       let changed = false;
@@ -177,7 +182,8 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
       return;
     }
     try {
-      const imported = parseStudioProject(await file.text());
+      const parsed = parseStudioProject(await file.text());
+      const imported = { ...parsed, clips: parsed.clips.map((clip) => normalizeClip(clip, safeDuration, parsed.snapEnabled)) };
       setProject(imported);
       setSelectedClipId(imported.clips.find((clip) => clip.track === "overlay")?.id ?? null);
       setNotice("Project settings and timeline imported. Re-import the source media separately; media bytes are not embedded in the project file.");
