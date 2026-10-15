@@ -317,8 +317,8 @@ export default function App() {
 
         <section className="lower-grid">
           <div className="info-card"><div className="card-heading"><span><Radio size={17} /> SIGNAL METRICS</span><span className="small-status">REAL-TIME</span></div><div className="metric-grid"><div><span>ENGINE</span><strong>WEB AUDIO</strong></div><div><span>RENDERER</span><strong>CANVAS 2D</strong></div><div><span>VISUAL MODES</span><strong>05</strong></div></div></div>
-          {lyricsOpen && <div className="info-card lyrics-card"><div className="card-heading"><span><Headphones size={17} /> LYRICS WORKSPACE</span><span className="small-status">MANUAL / V1</span></div><textarea value={lyrics} onChange={(e) => setLyrics(e.target.value)} placeholder={"Paste lyrics here…\nEach line will appear in the preview."} aria-label="Lyrics text editor" /><div className="lyrics-footer"><span>{lyricLines.length} lines · timestamp sync next</span><button onClick={() => setLyrics("")}>Clear</button></div></div>}
         </section>
+        {lyricsOpen && <LyricsWorkspace currentTime={currentTime} duration={duration} seek={seek} />}
         <footer>WAVY AUDIO SYSTEMS <span>BUILT FOR THE RHYTHM</span><span>LOCAL-FIRST · V0.1</span></footer>
       </main>
     </div>
