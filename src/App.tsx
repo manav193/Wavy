@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Activity, AudioLines, Disc3, FileAudio, Headphones, ListMusic,
+  Activity, Disc3, FileAudio, Headphones, ListMusic,
   Pause, Play, Radio, SkipBack, SkipForward, Volume2, Waves,
 } from "lucide-react";
 
@@ -103,7 +103,7 @@ function AudioCanvas({ analyser, mode, playing }: {
           const x = i / (count - 1) * cw;
           const y = ch / 2 - (data[idx] - 128) / 128 * ch * 0.39;
           if (i === 0) ctx.moveTo(x, y);
-          else { ctx.lineTo(x, ctx.getCurrentPoint ? y : y); }
+          else { ctx.lineTo(x, y); }
           if (i < count - 1) {
             const nextX = (i + 1) / (count - 1) * cw;
             ctx.lineTo(nextX, y);
