@@ -209,7 +209,7 @@ export default function LyricsWorkspace({ currentTime, duration, seek }: LyricsW
       <div className="lyric-current-preview">
         <span className="eyebrow">CURRENT LYRIC · {formatLrcTimestamp(currentTime * 1000)}</span>
         <strong className={`karaoke-word-stage preset-${animationPreset}`} aria-live="off">
-          {activeLine ? wordList.map((word, index) => <span key={`${activeLine.id}-${index}`} className={index === activeWordIndex ? "karaoke-word is-word-active" : "karaoke-word"} key={`${activeLine.id}-${index}`}>{word}{index < wordList.length - 1 ? " " : ""}</span>) : "No timed line at this position"}
+          {activeLine ? wordList.map((word, index) => <span key={`${activeLine.id}-${index}`} className={index === activeWordIndex ? "karaoke-word is-word-active" : "karaoke-word"}>{word}{index < wordList.length - 1 ? " " : ""}</span>) : "No timed line at this position"}
         </strong>
       </div>
 
