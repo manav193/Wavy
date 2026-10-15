@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AudioLines, Download, LoaderCircle, Square, Video } from "lucide-react";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import { getExtractionInputName, formatBytes, MAX_EXTRACTION_BYTES } from "./audio-extraction";
+import { getExtractionInputName, getExtractionMimeType, getExtractionOutputName, formatBytes, MAX_EXTRACTION_BYTES } from "./audio-extraction";
 
 interface AudioExtractorProps {
   sourceFile: File;
@@ -89,11 +89,11 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
       if (typeof result === "string" || result.byteLength === 0) {
         throw new Error("The source did not produce a valid audio stream. Check that the video contains audio.");
       }
-      const mimeType = format === "wav" ? "audio/wav" : "audio/mpeg";
+      const mimeType = getExtractionMimeType(format);
       const outputBlob = new Blob([new Uint8Array(result).buffer as ArrayBuffer], { type: mimeType });
       const url = URL.createObjectURL(outputBlob);
       setOutputUrl(url);
-      setOutputName(`${sourceFile.name.replace(/\.[^.]+$/, "") || "wavy-extracted-audio"}.${format}`);
+      setOutputName(getExtractionOutputName(sourceFile.name, format));
       setProgress(100);
       setStatus(format === "wav"
         ? `WAV ready · ${formatBytes(outputBlob.size)} · 44.1 kHz stereo PCM`
@@ -132,7 +132,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
           {busy ? "Extracting…" : `Extract audio to ${format.toUpperCase()}`}
         </button>
         {busy && <button className="secondary-action" onClick={cancel}><Square size={13} /> Cancel</button>}
-        {outputUrl && <a className="secondary-action" href={outputUrl} download={outputName}><Download size={14} /> Download WAV</a>}
+        {outputUrl && <a className="secondary-action" href={outputUrl} download={outputName}><Download size={14} /> Download {format.toUpperCase()}</a>}
       </div>
       {busy && <div className="extractor-progress" role="status" aria-live="polite">
         <div className="extractor-progress-label"><span>{status}</span><span>{progress}%</span></div>
