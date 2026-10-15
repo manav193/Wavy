@@ -10,6 +10,7 @@ Wavy is a music player and lyric-video studio for web and Android, with real-tim
 - Five Canvas visualizers: oscilloscope, spectrum, stepped, sawtooth, and decay
 - LRC import/export with multi-timestamp, metadata, and offset support
 - Playback-synchronized lyric highlighting, line seek, manual timestamp editor, and preview offset
+- Five selectable word-level karaoke preview presets; word timing is estimated from line intervals until word-level timestamps are supplied
 - Optional NIMO-CORE text-formatting assist with an explicit review/apply step
 - Responsive dark CRT-inspired UI
 
