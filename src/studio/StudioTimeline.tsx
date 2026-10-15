@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { Download, Film, Grid2X2, MoveHorizontal, Music2, Plus, RotateCcw, Scissors, Settings2, Sparkles, Type, Upload, Waves } from "lucide-react";
+import { Download, Film, Grid2X2, MoveHorizontal, Music2, Plus, RotateCcw, SkipBack, Settings2, Sparkles, Type, Upload, Waves } from "lucide-react";
 import type { LyricLine } from "../lyrics/lrc";
 import {
   createDefaultProject,
@@ -7,6 +7,7 @@ import {
   normalizeClip,
   parseStudioProject,
   PROJECT_STORAGE_KEY,
+  snapSeconds,
   type StudioClip,
   type StudioProject,
   type StudioTrackKind,
@@ -259,7 +260,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
         <div className="studio-timeline-title"><span><MoveHorizontal size={15} /> MULTI-TRACK TIMELINE</span><span>{timeLabel(currentTime)} / {timeLabel(duration)}</span></div>
         <div className="studio-toolbar-actions">
           <button className="secondary-action" onClick={addOverlay}><Plus size={13} /> Add text overlay</button>
-          <button className="secondary-action" onClick={() => seek(0)}><Scissors size={13} /> Go to start</button>
+          <button className="secondary-action" onClick={() => seek(0)}><SkipBack size={13} /> Go to start</button>
         </div>
       </div>
 
@@ -279,7 +280,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
                   const width = Math.max(1.2, Math.min(100 - left, ((nextLine?.startMs ?? (line.startMs + 2000)) - line.startMs) / 1000 / safeDuration * 100));
                   return <button key={line.id} className="studio-lyric-cue" title={`${timeLabel(line.startMs / 1000)} · ${line.text}`} style={{ left: `${left}%`, width: `${width}%` }} onClick={() => seek(line.startMs / 1000)} onDoubleClick={() => {
                     const next = window.prompt("Set lyric start time (seconds)", String((line.startMs / 1000).toFixed(2)));
-                    if (next !== null && next.trim() && Number.isFinite(Number(next))) onMoveLyric(line.id, Math.max(0, Math.min(duration || Number(next), Number(next))) * 1000);
+                    if (next !== null && next.trim() && Number.isFinite(Number(next))) onMoveLyric(line.id, snapSeconds(Math.max(0, Math.min(duration || Number(next), Number(next))), project.snapEnabled) * 1000);
                   }}>{line.text}</button>;
                 })}
                 {lyricLines.every((line) => line.startMs < 0) && <span className="studio-empty-lane">Import or timestamp lyrics to see cue points</span>}
