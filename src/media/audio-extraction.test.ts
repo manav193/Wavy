@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatBytes,
+  getErrorMessage,
   getExtractionInputName,
   getExtractionMimeType,
   getExtractionOutputName,
@@ -32,6 +33,14 @@ describe("media file helpers", () => {
     expect(getExtractionOutputName(".mp4", "wav")).toBe("wavy-extracted-audio.wav");
     expect(getExtractionMimeType("wav")).toBe("audio/wav");
     expect(getExtractionMimeType("mp3")).toBe("audio/mpeg");
+  });
+
+  it("preserves native, string, and serialized FFmpeg errors", () => {
+    expect(getErrorMessage(new Error("decoder failed"))).toBe("decoder failed");
+    expect(getErrorMessage("worker failed")).toBe("worker failed");
+    expect(getErrorMessage({ message: "missing audio stream" })).toBe("missing audio stream");
+    expect(getErrorMessage({ code: 7 })).toBe('{"code":7}');
+    expect(getErrorMessage(null)).toBe("Unexpected conversion error.");
   });
 
   it("formats sizes and defines a 200 MB safety cap", () => {
