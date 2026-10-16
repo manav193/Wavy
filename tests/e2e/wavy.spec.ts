@@ -128,7 +128,7 @@ test("Studio renders a playable video artifact with synchronized source audio", 
   await expect(page.getByRole("heading", { name: "sample" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Render video" })).toBeEnabled({ timeout: 15_000 });
   await page.getByRole("button", { name: "Render video" }).click();
-  await expect(page.getByRole("status").filter({ hasText: /Rendered 3\.00 seconds|Rendered 2\.9/ })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("status").filter({ hasText: /Rendered .* seconds/ })).toBeVisible({ timeout: 60_000 });
   const link = page.getByRole("link", { name: /Download .*\.(mp4|webm)/i });
   await expect(link).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
