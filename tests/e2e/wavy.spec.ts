@@ -26,6 +26,17 @@ function expectValidAudioArtifact(outputPath: string, expectedCodec: string) {
   expect(Number(meanVolume?.[1])).toBeLessThan(-10);
 }
 
+async function waitForExtractionLink(page: import("@playwright/test").Page, format: "WAV" | "MP3") {
+  const link = page.getByRole("link", { name: `Download ${format}` });
+  const alert = page.getByRole("alert");
+  const result = await Promise.race([
+    link.waitFor({ state: "visible", timeout: 150_000 }).then(() => "ready" as const),
+    alert.waitFor({ state: "visible", timeout: 150_000 }).then(() => "error" as const),
+  ]);
+  if (result === "error") throw new Error(`Extraction failed: ${await alert.innerText()}`);
+  return link;
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
@@ -98,8 +109,7 @@ test("real video fixture extracts a valid WAV with audible samples", async ({ pa
   await expect(page.getByRole("heading", { name: "sample" })).toBeVisible();
   test.setTimeout(180_000);
   await page.getByRole("button", { name: "Extract audio to WAV" }).click();
-  const downloadLink = page.getByRole("link", { name: "Download WAV" });
-  await expect(downloadLink).toBeVisible({ timeout: 150_000 });
+  const downloadLink = await waitForExtractionLink(page, "WAV");
   const downloadPromise = page.waitForEvent("download");
   await downloadLink.click();
   const download = await downloadPromise;
@@ -114,8 +124,7 @@ test("real video fixture extracts a valid MP3 with audible samples", async ({ pa
   await page.locator(".extractor-format select").selectOption("mp3");
   test.setTimeout(180_000);
   await page.getByRole("button", { name: "Extract audio to MP3" }).click();
-  const downloadLink = page.getByRole("link", { name: "Download MP3" });
-  await expect(downloadLink).toBeVisible({ timeout: 150_000 });
+  const downloadLink = await waitForExtractionLink(page, "MP3");
   const downloadPromise = page.waitForEvent("download");
   await downloadLink.click();
   const download = await downloadPromise;
