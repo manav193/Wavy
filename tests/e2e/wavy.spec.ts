@@ -26,6 +26,23 @@ function expectValidAudioArtifact(outputPath: string, expectedCodec: string) {
   expect(Number(meanVolume?.[1])).toBeLessThan(-10);
 }
 
+
+function expectValidVideoArtifact(outputPath: string) {
+  const metadata = JSON.parse(execFileSync("ffprobe", [
+    "-v", "error", "-show_entries", "stream=codec_type,codec_name,width,height,r_frame_rate:format=duration",
+    "-of", "json", outputPath,
+  ], { encoding: "utf8" }));
+  const video = metadata.streams.find((stream: { codec_type: string }) => stream.codec_type === "video");
+  const audio = metadata.streams.find((stream: { codec_type: string }) => stream.codec_type === "audio");
+  expect(video).toBeTruthy();
+  expect(audio).toBeTruthy();
+  expect(Number(metadata.format.duration)).toBeGreaterThan(2);
+  expect(Number(metadata.format.duration)).toBeLessThan(4.5);
+  expect(video.width).toBeGreaterThan(0);
+  expect(video.height).toBeGreaterThan(0);
+  expect(video.r_frame_rate).toMatch(/^(24|30|60)\/1$/);
+}
+
 async function waitForExtractionLink(page: import("@playwright/test").Page, format: "WAV" | "MP3") {
   const link = page.getByRole("link", { name: `Download ${format}` });
   const alert = page.getByRole("alert");
@@ -101,6 +118,26 @@ test("project JSON exports and imports settings safely", async ({ page }) => {
   await page.locator('input[type="file"][accept*=".wavy.json"]').setInputFiles(path);
   await expect(page.getByLabel("Project name")).toHaveValue("Round-trip QA");
   await expect(page.getByRole("status").filter({ hasText: "Project settings and timeline imported" })).toBeVisible();
+});
+
+
+test("Studio renders a playable video artifact with synchronized source audio", async ({ page }) => {
+  test.skip(!hasMediaFixture, "CI generates an MP4 fixture before running browser tests.");
+  test.setTimeout(120_000);
+  await page.locator("#audio-input").setInputFiles(fixturePath);
+  await expect(page.getByRole("heading", { name: "sample" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Render video" })).toBeEnabled({ timeout: 15_000 });
+  await page.getByRole("button", { name: "Render video" }).click();
+  await expect(page.getByRole("status").filter({ hasText: /Rendered 3\.00 seconds|Rendered 2\.9/ })).toBeVisible({ timeout: 60_000 });
+  const link = page.getByRole("link", { name: /Download .*\.(mp4|webm)/i });
+  await expect(link).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await link.click();
+  const download = await downloadPromise;
+  const outputPath = await download.path();
+  if (!outputPath) throw new Error("Video export did not produce a downloadable file.");
+  expect(download.suggestedFilename()).toMatch(/\.(mp4|webm)$/i);
+  expectValidVideoArtifact(outputPath);
 });
 
 test("real video fixture extracts a valid WAV with audible samples", async ({ page }) => {
