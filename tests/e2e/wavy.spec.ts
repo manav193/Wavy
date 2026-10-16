@@ -29,7 +29,7 @@ function expectValidAudioArtifact(outputPath: string, expectedCodec: string) {
 
 function expectValidVideoArtifact(outputPath: string) {
   const metadata = JSON.parse(execFileSync("ffprobe", [
-    "-v", "error", "-show_entries", "stream=codec_type,codec_name,width,height,r_frame_rate:format=duration",
+    "-v", "error", "-show_entries", "stream=codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate:format=duration",
     "-of", "json", outputPath,
   ], { encoding: "utf8" }));
   const video = metadata.streams.find((stream: { codec_type: string }) => stream.codec_type === "video");
@@ -40,7 +40,7 @@ function expectValidVideoArtifact(outputPath: string) {
   expect(Number(metadata.format.duration)).toBeLessThan(4.5);
   expect(video.width).toBeGreaterThan(0);
   expect(video.height).toBeGreaterThan(0);
-  expect(video.r_frame_rate).toMatch(/^(24|30|60)\/1$/);
+  const [fpsNumerator, fpsDenominator] = String(video.avg_frame_rate).split("/").map(Number);\n  const averageFps = fpsNumerator / fpsDenominator;\n  expect(Number.isFinite(averageFps)).toBe(true);\n  expect(Math.abs(averageFps - 30)).toBeLessThan(1);
 }
 
 async function waitForExtractionLink(page: import("@playwright/test").Page, format: "WAV" | "MP3") {
