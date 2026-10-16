@@ -298,6 +298,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
         audio.addEventListener("error", () => reject(new Error("The source media could not be decoded for export.")), { once: true });
         audio.load();
       });
+      if (cancelled || finished) { cleanup(); return; }
       if (!Number.isFinite(audio.duration) || audio.duration <= 0) throw new Error("The source media has no readable duration.");
       const targetDuration = Math.min(exportDuration, audio.duration);
       const AudioContextCtor = window.AudioContext;
@@ -314,6 +315,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
         exportAnalyser.connect(exportContext.destination);
         audioStream = recordingDestination.stream;
         if (exportContext.state === "suspended") await exportContext.resume();
+        if (cancelled || finished) { cleanup(); return; }
       } else {
         const captureAudio = (audio as HTMLAudioElement & { captureStream?: () => MediaStream; mozCaptureStream?: () => MediaStream }).captureStream
           ?? (audio as HTMLAudioElement & { mozCaptureStream?: () => MediaStream }).mozCaptureStream;
@@ -362,6 +364,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
         }
         raf = requestAnimationFrame(render);
       };
+      if (cancelled || finished) { cleanup(); return; }
       audio.currentTime = 0;
       recorder.start(1000);
       await audio.play();
