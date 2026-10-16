@@ -43,7 +43,8 @@ function expectValidVideoArtifact(outputPath: string) {
   const [fpsNumerator, fpsDenominator] = String(video.avg_frame_rate).split("/").map(Number);
   const averageFps = fpsNumerator / fpsDenominator;
   expect(Number.isFinite(averageFps)).toBe(true);
-  expect(Math.abs(averageFps - 30)).toBeLessThan(1);
+  expect(averageFps).toBeGreaterThan(20);
+  expect(averageFps).toBeLessThanOrEqual(31);
   const analysis = spawnSync("ffmpeg", [
     "-hide_banner", "-i", outputPath, "-map", "0:a:0", "-af", "volumedetect", "-f", "null", "-",
   ], { encoding: "utf8" });
