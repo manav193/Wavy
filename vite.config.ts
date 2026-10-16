@@ -8,6 +8,10 @@ const mediaIsolationHeaders = {
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    // FFmpeg ships its own worker entry; prebundling it can break core imports in Vite.
+    exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
+  },
   server: {
     host: "0.0.0.0",
     headers: mediaIsolationHeaders,
