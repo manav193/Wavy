@@ -242,7 +242,13 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
     if (!ctx) {
       setStatus("error"); setMessage("Could not initialize the 2D render canvas."); return;
     }
-    const canvasStream = canvas.captureStream(project.frameRate);
+    let canvasStream = canvas.captureStream(0);
+    let canvasTrack = canvasStream.getVideoTracks()[0] as CanvasCaptureMediaStreamTrack | undefined;
+    if (!canvasTrack || typeof canvasTrack.requestFrame !== "function") {
+      canvasStream.getTracks().forEach((track) => track.stop());
+      canvasStream = canvas.captureStream(project.frameRate);
+      canvasTrack = canvasStream.getVideoTracks()[0] as CanvasCaptureMediaStreamTrack | undefined;
+    }
     const audio = document.createElement("audio");
     audio.preload = "auto";
     audio.src = trackUrl;
@@ -256,6 +262,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
     let failed = false;
     let chunks: BlobPart[] = [];
     let lastProgress = 0;
+    let lastRequestedFrame = -1;
     let audioStream: MediaStream | null = null;
     let combinedStream: MediaStream | null = null;
     let exportContext: AudioContext | null = null;
@@ -354,7 +361,12 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
       const render = () => {
         if (finished) return;
         const time = Math.min(audio.currentTime, targetDuration);
-        drawProjectFrame({ ctx, width: dimensions.width, height: dimensions.height, time, project, lyricLines, mode: visualizerMode, sample: Math.floor(time * project.frameRate), analyser: exportAnalyser });
+        const frameIndex = Math.floor(time * project.frameRate);
+        if (frameIndex > lastRequestedFrame) {
+          drawProjectFrame({ ctx, width: dimensions.width, height: dimensions.height, time, project, lyricLines, mode: visualizerMode, sample: frameIndex, analyser: exportAnalyser });
+          if (canvasTrack && typeof canvasTrack.requestFrame === "function") canvasTrack.requestFrame();
+          lastRequestedFrame = frameIndex;
+        }
         const nextProgress = Math.min(99, Math.floor(time / targetDuration * 100));
         if (nextProgress !== lastProgress && aliveRef.current) {
           lastProgress = nextProgress;
