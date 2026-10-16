@@ -7,11 +7,11 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   web:
-    name: Typecheck and build
+    name: Typecheck, unit tests, browser E2E, and build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,11 +20,50 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Install dependencies
+          cache: npm
+      - name: Record whether a lockfile exists
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "had_lockfile=true" >> "$GITHUB_ENV"
+          else
+            echo "had_lockfile=false" >> "$GITHUB_ENV"
+          fi
+      - name: Install dependencies and create lockfile when missing
         run: npm install
+      - name: Commit initial lockfile on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$had_lockfile" = "false" ] && [ -f package-lock.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore: add npm lockfile"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+      - name: Verify clean reproducible install
+        run: npm ci
       - name: Typecheck
         run: npm run typecheck
       - name: Unit tests
         run: npm test
       - name: Production build
         run: npm run build
+      - name: Install FFmpeg for media fixture generation and validation
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+      - name: Generate three-second video/audio fixture
+        run: |
+          mkdir -p tests/fixtures
+          ffmpeg -hide_banner -loglevel error -y \
+            -f lavfi -i "testsrc2=size=320x240:rate=30" \
+            -f lavfi -i "sine=frequency=440:sample_rate=44100" \
+            -t 3 -c:v mpeg4 -q:v 5 -c:a aac -b:a 128k -shortest \
+            tests/fixtures/sample.mp4
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 tests/fixtures/sample.mp4
+      - name: Browser E2E and actual WAV/MP3 output verification
+        run: npm run test:e2e
