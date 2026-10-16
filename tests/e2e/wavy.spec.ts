@@ -1,9 +1,30 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 
 const fixturePath = "tests/fixtures/sample.mp4";
+const silentFixturePath = "tests/fixtures/sample-silent.mp4";
 const hasMediaFixture = existsSync(fixturePath);
+
+function expectValidAudioArtifact(outputPath: string, expectedCodec: string) {
+  const metadata = JSON.parse(execFileSync("ffprobe", [
+    "-v", "error", "-show_entries", "stream=codec_name,sample_rate,channels:format=duration",
+    "-of", "json", outputPath,
+  ], { encoding: "utf8" }));
+  expect(metadata.streams[0].codec_name).toBe(expectedCodec);
+  expect(metadata.streams[0].sample_rate).toBe("44100");
+  expect(metadata.streams[0].channels).toBe(2);
+  expect(Number(metadata.format.duration)).toBeGreaterThan(2);
+  expect(Number(metadata.format.duration)).toBeLessThan(4);
+
+  const analysis = spawnSync("ffmpeg", [
+    "-hide_banner", "-i", outputPath, "-af", "volumedetect", "-f", "null", "-",
+  ], { encoding: "utf8" });
+  expect(analysis.status).toBe(0);
+  const meanVolume = /mean_volume:\\s*(-?[\\d.]+) dB/.exec(analysis.stderr);
+  expect(meanVolume).not.toBeNull();
+  expect(Number(meanVolume?.[1])).toBeLessThan(-10);
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
@@ -71,7 +92,7 @@ test("project JSON exports and imports settings safely", async ({ page }) => {
   await expect(page.getByRole("status").filter({ hasText: "Project settings and timeline imported" })).toBeVisible();
 });
 
-test("real video fixture extracts a valid WAV file", async ({ page }) => {
+test("real video fixture extracts a valid WAV with audible samples", async ({ page }) => {
   test.skip(!hasMediaFixture, "CI generates a short MP4 fixture before running browser tests.");
   await page.locator("#audio-input").setInputFiles(fixturePath);
   await expect(page.getByRole("heading", { name: "sample" })).toBeVisible();
@@ -80,18 +101,10 @@ test("real video fixture extracts a valid WAV file", async ({ page }) => {
   const download = await downloadPromise;
   const outputPath = await download.path();
   if (!outputPath) throw new Error("WAV extraction did not create a downloadable file.");
-  const metadata = JSON.parse(execFileSync("ffprobe", [
-    "-v", "error", "-show_entries", "stream=codec_name,sample_rate,channels:format=duration",
-    "-of", "json", outputPath,
-  ], { encoding: "utf8" }));
-  expect(metadata.streams[0].codec_name).toBe("pcm_s16le");
-  expect(metadata.streams[0].sample_rate).toBe("44100");
-  expect(metadata.streams[0].channels).toBe(2);
-  expect(Number(metadata.format.duration)).toBeGreaterThan(2);
-  expect(Number(metadata.format.duration)).toBeLessThan(4);
+  expectValidAudioArtifact(outputPath, "pcm_s16le");
 });
 
-test("real video fixture extracts a valid MP3 file", async ({ page }) => {
+test("real video fixture extracts a valid MP3 with audible samples", async ({ page }) => {
   test.skip(!hasMediaFixture, "CI generates a short MP4 fixture before running browser tests.");
   await page.locator("#audio-input").setInputFiles(fixturePath);
   await page.locator(".extractor-format select").selectOption("mp3");
@@ -100,14 +113,33 @@ test("real video fixture extracts a valid MP3 file", async ({ page }) => {
   const download = await downloadPromise;
   const outputPath = await download.path();
   if (!outputPath) throw new Error("MP3 extraction did not create a downloadable file.");
-  const metadata = JSON.parse(execFileSync("ffprobe", [
-    "-v", "error", "-show_entries", "stream=codec_name,sample_rate,channels:format=duration",
-    "-of", "json", outputPath,
-  ], { encoding: "utf8" }));
-  expect(metadata.streams[0].codec_name).toBe("mp3");
-  expect(metadata.streams[0].sample_rate).toBe("44100");
-  expect(metadata.streams[0].channels).toBe(2);
-  expect(Number(metadata.format.duration)).toBeGreaterThan(2);
-  expect(Number(metadata.format.duration)).toBeLessThan(4);
+  expectValidAudioArtifact(outputPath, "mp3");
   await expect(page.getByRole("link", { name: "Download MP3" })).toBeVisible();
+});
+
+test("silent video reports a useful no-audio error", async ({ page }) => {
+  test.skip(!existsSync(silentFixturePath), "CI generates a silent video fixture.");
+  await page.locator("#audio-input").setInputFiles(silentFixturePath);
+  await page.getByRole("button", { name: "Extract audio to WAV" }).click();
+  await expect(page.getByRole("alert")).toContainText(/could not decode|no audio|audio stream/i, { timeout: 90_000 });
+});
+
+test("invalid video input fails safely instead of offering a broken download", async ({ page }) => {
+  await page.locator("#audio-input").setInputFiles({
+    name: "invalid.mp4",
+    mimeType: "video/mp4",
+    buffer: Buffer.from("this is not a valid media container"),
+  });
+  await page.getByRole("button", { name: "Extract audio to WAV" }).click();
+  await expect(page.getByRole("alert")).toContainText(/could not decode|invalid data|moov atom|error/i, { timeout: 90_000 });
+  await expect(page.getByRole("link", { name: "Download WAV" })).toHaveCount(0);
+});
+
+test("conversion can be cancelled without modifying the source", async ({ page }) => {
+  test.skip(!hasMediaFixture, "CI generates an MP4 fixture before running browser tests.");
+  await page.locator("#audio-input").setInputFiles(fixturePath);
+  await page.getByRole("button", { name: "Extract audio to WAV" }).click();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByRole("alert")).toContainText("Extraction cancelled");
+  await expect(page.getByRole("button", { name: "Extract audio to WAV" })).toBeEnabled();
 });
