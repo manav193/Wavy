@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AudioLines, Download, LoaderCircle, Square, Video } from "lucide-react";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import { getExtractionInputName, getExtractionMimeType, getExtractionOutputName, formatBytes, MAX_EXTRACTION_BYTES } from "./audio-extraction";
+import { getExtractionInputName, getExtractionMimeType, getExtractionOutputName, getErrorMessage, formatBytes, MAX_EXTRACTION_BYTES } from "./audio-extraction";
 
 interface AudioExtractorProps {
   sourceFile: File;
@@ -12,6 +12,7 @@ const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/um
 export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
   const ffmpegRef = useRef<import("@ffmpeg/ffmpeg").FFmpeg | null>(null);
   const cancelledRef = useRef(false);
+  const lastLogRef = useRef("");
   const [format, setFormat] = useState<"wav" | "mp3">("wav");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -38,6 +39,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
     setError("");
     setStatus("");
     setProgress(0);
+    lastLogRef.current = "";
     if (sourceFile.size > MAX_EXTRACTION_BYTES) {
       setError(`This file is ${formatBytes(sourceFile.size)}. The in-browser extraction limit is ${formatBytes(MAX_EXTRACTION_BYTES)} to reduce memory failures.`);
       return;
@@ -58,6 +60,7 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
         if (Number.isFinite(ratio)) setProgress(Math.max(0, Math.min(100, Math.round(ratio * 100))));
       });
       ffmpeg.on("log", ({ message }) => {
+        lastLogRef.current = message;
         if (/does not contain any stream|matches no streams|Output file is empty/i.test(message)) {
           setStatus("Checking source audio stream…");
         }
@@ -100,10 +103,11 @@ export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
         : `MP3 ready · ${formatBytes(outputBlob.size)} · 44.1 kHz stereo · quality setting 2`);
     } catch (cause) {
       if (cancelledRef.current) return;
-      const message = cause instanceof Error ? cause.message : "Unexpected conversion error.";
+      const message = getErrorMessage(cause);
+      const detail = lastLogRef.current && !message.includes(lastLogRef.current) ? ` Last FFmpeg log: ${lastLogRef.current}` : "";
       setError(message.includes("SharedArrayBuffer") || message.includes("cross-origin")
         ? "The conversion engine could not start in this browser context. Try a current browser and a secure (HTTPS or localhost) origin."
-        : message);
+        : `${message}${detail}`);
     } finally {
       ffmpeg?.terminate();
       if (ffmpegRef.current === ffmpeg) ffmpegRef.current = null;
