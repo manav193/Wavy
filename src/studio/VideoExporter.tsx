@@ -21,6 +21,7 @@ interface RenderFrameOptions {
   lyricLines: LyricLine[];
   mode: VisualizerMode;
   sample: number;
+  analyser?: AnalyserNode | null;
 }
 
 export function activeLineAt(lines: LyricLine[], timeSeconds: number): LyricLine | null {
@@ -79,6 +80,8 @@ export function drawProjectFrame(options: RenderFrameOptions): void {
   );
   if (visualizer) {
     const count = Math.min(96, Math.max(32, Math.floor(width / 18)));
+    const frequencyData = options.analyser ? new Uint8Array(options.analyser.frequencyBinCount) : null;
+    if (frequencyData && options.analyser) options.analyser.getByteFrequencyData(frequencyData);
     const gap = Math.max(3, width / 400);
     const barWidth = (width - margin * 2 - gap * (count - 1)) / count;
     const centerY = height * 0.43;
@@ -88,7 +91,9 @@ export function drawProjectFrame(options: RenderFrameOptions): void {
     ctx.fillStyle = accent;
     for (let i = 0; i < count; i++) {
       // Time-seeded synthetic spectrum is deterministic and remains animated in export.
-      const envelope = 0.18 + 0.82 * Math.abs(Math.sin(i * 0.19 + time * 2.4));
+      const envelope = frequencyData
+        ? Math.max(0.06, frequencyData[Math.floor(i * frequencyData.length / count)] / 255)
+        : 0.18 + 0.82 * Math.abs(Math.sin(i * 0.19 + time * 2.4));
       const ripple = 0.45 + 0.55 * Math.abs(Math.sin(i * 0.071 + time * 5.2 + sample * 0.001));
       const modeScale = mode === "decay" ? Math.exp(-((i % 18) / 18) * 2) : mode === "stepped" ? Math.round(envelope * 4) / 4 : 1;
       const barHeight = Math.max(height * 0.008, height * 0.18 * envelope * ripple * modeScale);
@@ -171,6 +176,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
   const [outputName, setOutputName] = useState("");
   const cancelRef = useRef<(() => void) | null>(null);
   const outputUrlRef = useRef("");
+  const audioContextRef = useRef<AudioContext | null>(null);
   const aliveRef = useRef(true);
 
   useEffect(() => {
@@ -179,6 +185,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
       aliveRef.current = false;
       cancelRef.current?.();
       if (outputUrlRef.current) URL.revokeObjectURL(outputUrlRef.current);
+      if (audioContextRef.current) void audioContextRef.current.close();
     };
   }, []);
 
@@ -252,6 +259,8 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
     let lastProgress = 0;
     let audioStream: MediaStream | null = null;
     let combinedStream: MediaStream | null = null;
+    let exportContext: AudioContext | null = null;
+    let exportAnalyser: AnalyserNode | null = null;
     const cleanup = () => {
       cancelAnimationFrame(raf);
       audio.pause();
@@ -260,6 +269,8 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
       canvasStream.getTracks().forEach((track) => track.stop());
       audioStream?.getTracks().forEach((track) => track.stop());
       combinedStream?.getTracks().forEach((track) => track.stop());
+      if (exportContext) void exportContext.close();
+      if (audioContextRef.current === exportContext) audioContextRef.current = null;
       cancelRef.current = null;
     };
     const fail = (error: unknown) => {
@@ -289,12 +300,26 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
       });
       if (!Number.isFinite(audio.duration) || audio.duration <= 0) throw new Error("The source media has no readable duration.");
       const targetDuration = Math.min(exportDuration, audio.duration);
-      if (typeof audio.captureStream !== "function" && typeof (audio as HTMLAudioElement & { mozCaptureStream?: () => MediaStream }).mozCaptureStream !== "function") {
-        throw new Error("This browser cannot capture the source audio stream. Try desktop Chromium.");
+      const AudioContextCtor = window.AudioContext;
+      if (AudioContextCtor) {
+        exportContext = new AudioContextCtor();
+        audioContextRef.current = exportContext;
+        exportAnalyser = exportContext.createAnalyser();
+        exportAnalyser.fftSize = 2048;
+        exportAnalyser.smoothingTimeConstant = 0.72;
+        const mediaSource = exportContext.createMediaElementSource(audio);
+        const recordingDestination = exportContext.createMediaStreamDestination();
+        mediaSource.connect(exportAnalyser);
+        exportAnalyser.connect(recordingDestination);
+        exportAnalyser.connect(exportContext.destination);
+        audioStream = recordingDestination.stream;
+        if (exportContext.state === "suspended") await exportContext.resume();
+      } else {
+        const captureAudio = (audio as HTMLAudioElement & { captureStream?: () => MediaStream; mozCaptureStream?: () => MediaStream }).captureStream
+          ?? (audio as HTMLAudioElement & { mozCaptureStream?: () => MediaStream }).mozCaptureStream;
+        if (!captureAudio) throw new Error("This browser cannot capture source audio. Try an up-to-date desktop Chromium browser.");
+        audioStream = captureAudio.call(audio);
       }
-      const captureAudio = (audio as HTMLAudioElement & { captureStream?: () => MediaStream; mozCaptureStream?: () => MediaStream }).captureStream
-        ?? (audio as HTMLAudioElement & { mozCaptureStream?: () => MediaStream }).mozCaptureStream;
-      audioStream = captureAudio!.call(audio);
       combinedStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioStream.getAudioTracks()]);
       if (!combinedStream.getAudioTracks().length) throw new Error("The browser did not expose an audio track for recording.");
       recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: pixels > 2_000_000 ? 5_000_000 : 3_000_000, audioBitsPerSecond: 192_000 });
@@ -325,7 +350,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
       const render = () => {
         if (finished) return;
         const time = Math.min(audio.currentTime, targetDuration);
-        drawProjectFrame({ ctx, width: dimensions.width, height: dimensions.height, time, project, lyricLines, mode: visualizerMode, sample: Math.floor(time * project.frameRate) });
+        drawProjectFrame({ ctx, width: dimensions.width, height: dimensions.height, time, project, lyricLines, mode: visualizerMode, sample: Math.floor(time * project.frameRate), analyser: exportAnalyser });
         const nextProgress = Math.min(99, Math.floor(time / targetDuration * 100));
         if (nextProgress !== lastProgress && aliveRef.current) {
           lastProgress = nextProgress;
