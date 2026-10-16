@@ -27,6 +27,22 @@ export function getExtractionMimeType(format: ExtractionFormat): "audio/wav" | "
   return format === "wav" ? "audio/wav" : "audio/mpeg";
 }
 
+export function getErrorMessage(cause: unknown): string {
+  if (cause instanceof Error && cause.message) return cause.message;
+  if (typeof cause === "string" && cause.trim()) return cause;
+  if (cause && typeof cause === "object") {
+    const record = cause as Record<string, unknown>;
+    if (typeof record.message === "string" && record.message.trim()) return record.message;
+    try {
+      const serialized = JSON.stringify(cause);
+      if (serialized && serialized !== "{}") return serialized;
+    } catch {
+      // Fall through to a safe generic message for circular error objects.
+    }
+  }
+  return "Unexpected conversion error.";
+}
+
 export function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) return "Unknown size";
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
