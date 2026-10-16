@@ -29,12 +29,12 @@ function expectValidAudioArtifact(outputPath: string, expectedCodec: string) {
 async function waitForExtractionLink(page: import("@playwright/test").Page, format: "WAV" | "MP3") {
   const link = page.getByRole("link", { name: `Download ${format}` });
   const alert = page.getByRole("alert");
-  const result = await Promise.race([
-    link.waitFor({ state: "visible", timeout: 150_000 }).then(() => "ready" as const),
-    alert.waitFor({ state: "visible", timeout: 150_000 }).then(() => "error" as const),
-  ]);
-  if (result === "error") throw new Error(`Extraction failed: ${await alert.innerText()}`);
-  return link;
+  await page.waitForFunction(() => {
+    const card = document.querySelector(".extraction-card");
+    return Boolean(card?.querySelector("a[download]") || card?.querySelector('[role="alert"]'));
+  }, undefined, { timeout: 150_000 });
+  if (await link.isVisible()) return link;
+  throw new Error(`Extraction failed: ${await alert.innerText()}`);
 }
 
 test.beforeEach(async ({ page }) => {
