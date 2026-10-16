@@ -1,49 +1,35 @@
 # Wavy Code QA Audit
 
-Audit date: 2026-10-15
-Scope: repository tree, React/TypeScript application, lyrics parser/editor, NIMO client, media extraction adapter, styles, project configuration, tests, and GitHub Actions workflow.
+Audit date: 2026-10-16
+Scope: React/TypeScript app, Studio timeline, lyrics parser/editor, NIMO client, FFmpeg WebAssembly extraction, Vite configuration, project dependencies, unit tests, Chromium E2E tests, and GitHub Actions.
 
-## Findings and changes made
+## Changes verified
 
-### Fixed in this pass
+1. **Lyrics editor state retention:** hiding the lyrics workspace no longer discards imported or pasted lyrics.
+2. **Timeline/lyrics synchronization:** timeline cue edits flow back into the lyrics editor and active preview.
+3. **Project schema and persistence:** versioned project JSON validation, browser autosave, import/export, duplicate-ID rejection, and clip-boundary normalization.
+4. **Canvas sizing:** 1080p landscape is 1920×1080, portrait is 1080×1920, and square is 1080×1080.
+5. **Shared visualizer renderer:** player and Studio preview use the same analyser-backed Canvas component.
+6. **MP3 download correctness:** the visible download label, filename extension, and Blob MIME type match the selected WAV/MP3 format.
+7. **Vite/FFmpeg compatibility:** use the FFmpeg ESM core build with Vite and set cross-origin isolation headers for the local browser runtime. Runtime failures preserve useful error details instead of collapsing non-Error worker rejections into a generic message.
+8. **Reproducible installs:** committed `package-lock.json`; CI uses `npm ci`.
+9. **Browser regression suite:** Playwright tests cover Studio settings autosave, overlay drag/resize, lyric timestamp edits, project JSON roundtrip, valid WAV/MP3 extraction, silent/invalid inputs, and cancellation.
+10. **Artifact validation:** generated three-second video/audio fixtures are converted in Chromium; ffprobe verifies codec, duration, 44.1 kHz sample rate, and stereo channels, while FFmpeg volume analysis verifies the output contains an audible signal.
 
-1. **Lyrics editor state was lost when hidden.** The app conditionally unmounted the editor, discarding imported/pasted lyrics when the Lyrics navigation button was toggled. The editor now remains mounted inside a hidden wrapper, and its current line model is mirrored into Studio.
-2. **Timeline and lyrics editor were disconnected.** Added a timing-change bridge so a lyric cue adjusted from Studio updates the source lyrics editor and active preview.
-3. **Project settings and timeline had no durable project contract.** Added a versioned, typed project schema, validation on import, local browser autosave, and `.wavy.json` import/export.
-4. **Canvas dimensions needed conventional output-height semantics.** 1080p landscape maps to 1920×1080; portrait maps to 1080×1920; square maps to 1080×1080.
-5. **Timeline ruler/playhead alignment.** Adjusted ruler offset and playhead placement to account for the sticky track-label column.
-6. **Duplicated visualizer implementation.** Extracted the Canvas renderer into a reusable component and now use the same analyser-backed renderer in the player and Studio preview.
-7. **Project-import hardening.** Rejects duplicate clip IDs and clamps imported clips to the current project duration.
-8. **Type safety.** Imported project settings are narrowed only after validation; timeline pointer interactions use explicit React pointer event types.
-9. **Regression tests.** Added project schema, dimension, snapping, clip-boundary, import-validation, and media-helper unit tests.
+## Validation
 
-### Existing architecture reviewed
+- GitHub Actions run: [Wavy CI — ESM FFmpeg core and full Chromium/media E2E](https://github.com/manav193/Wavy/actions/runs/38848969521)
+- Verified checks: dependency install, TypeScript typecheck, Vitest unit tests, production build, Chromium browser E2E, and actual WAV/MP3 output inspection.
+- The browser suite runs with a single worker to keep FFmpeg memory usage predictable. Failed runs retain screenshots and traces as a workflow artifact.
 
-- Audio/video playback uses a browser media element and Web Audio analyser; it does not require NIMO.
-- Lyrics use LRC millisecond timings. The word-level karaoke preview still estimates word timing from adjacent line intervals; it is not forced alignment.
-- NIMO is an optional text-only formatting assist and its response is presented as an unverified draft.
-- Video audio extraction is a client-side FFmpeg WebAssembly flow. The implementation is not equivalent to verified output until browser fixtures validate the resulting WAV/MP3 files.
-- The Studio preview shares the live Canvas audio visualizer and follows the current playback clock for lyric cues and overlays. It is not the Phase 4 deterministic MP4 renderer.
+## Remaining product gaps
 
-## Known gaps / follow-up
+- Word-level karaoke timing remains estimated from adjacent line timings unless explicit word timings are supplied. There is no forced alignment/transcription engine.
+- Studio project JSON stores timeline metadata only; media bytes are not embedded and source media must be reselected after import.
+- Audio clip trimming, image/video backgrounds, advanced typography/safe-area guides, and deterministic final MP4 rendering are not implemented.
+- Physical Android/Capacitor validation, mobile touch-specific timeline tests, accessibility audit, and low-memory device testing remain release requirements.
+- The Studio preview is live and analyser-backed; it is not yet the deterministic renderer used by a final exported video.
 
-- `package-lock.json` is absent. CI currently uses `npm install`, so dependency resolution is not fully reproducible. Add a generated lockfile and switch CI to `npm ci` as a separate dependency-management task.
-- Browser-level end-to-end tests are not configured yet. Unit tests do not prove pointer dragging, mobile touch behavior, media decoding, FFmpeg encoder availability, or output synchronization.
-- The current project JSON stores settings and timeline metadata only. It does not embed media bytes or automatically relink the source file on project import.
-- Audio clip trimming and actual rendered audio start/end are not implemented.
-- Image/video backgrounds, advanced typography, safe-area guides, and deterministic render/export are still pending.
-- Studio local autosave can be unavailable when browser storage is disabled or quota is exceeded; the UI prompts the user to export a JSON backup.
-- Full browser accessibility, mobile performance, and physical Android testing remain release requirements.
+## QA policy
 
-## Validation status
-
-GitHub Actions typecheck/test/build checks are triggered by pushes. Their results should be checked against the latest commit before calling the release verified. No claim of successful browser E2E or media-output validation is made by this audit document.
-
-## Follow-up verification pass — 2026-10-16
-
-- **Fixed an export-label mismatch:** the MP3 encoder path could produce an MP3 file while the download link always displayed “Download WAV.” The link now reflects the selected output format.
-- **Centralized output metadata:** WAV/MP3 MIME types and output filenames are derived through tested helpers, reducing the chance that the chosen encoder, Blob type, filename extension, and visible label drift apart.
-- **Regression coverage added:** tests now check WAV and MP3 filename extensions, MIME types, and fallback naming for an input whose basename is empty.
-- **Still not verified in a real browser:** the FFmpeg WebAssembly core is loaded from a CDN, and this environment cannot run a browser media fixture or decode the produced output. The output must still be checked for container signature, duration, sample rate/channels, audio content, cancellation behavior, and MP3 encoder availability.
-- **Reproducible install remains a release-hardening item:** no package-lock.json is present. A lockfile should be generated with the project's supported Node/npm toolchain and CI changed from npm install to npm ci only after the lockfile is generated and verified. This environment could not reach the npm/GitHub network to generate and validate it safely.
-- **Studio browser interaction tests remain outstanding:** model-level unit tests do not exercise pointer dragging/resizing, lyric cue double-click editing, autosave, or import/export through the rendered UI.
+A UI click or a generated download event is not enough to mark media export complete. The actual artifact must be inspected for format, duration, channels/sample rate, and non-silent audio. Playback/preview is not final video export, and estimated lyric timing is not verified word alignment.

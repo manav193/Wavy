@@ -54,3 +54,13 @@ jobs:
           ffmpeg -hide_banner -loglevel error -y -f lavfi -i "testsrc2=size=320x240:rate=30" -t 3 -c:v mpeg4 -q:v 5 tests/fixtures/sample-silent.mp4
       - name: Browser E2E and actual WAV/MP3 output verification
         run: npm run test:e2e
+      - name: Upload Playwright diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wavy-playwright-diagnostics
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7

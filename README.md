@@ -7,7 +7,7 @@ Wavy is a music player and lyric-video studio for web and Android, with real-tim
 - React + TypeScript + Vite
 - Local MP3/audio playback and Web Audio API analysis
 - MP4/WebM/MOV/M4V media import where browser codecs support it; video audio is routed through the same analyser for live visualizations (no upload required)
-- In-browser video audio extraction to downloadable 44.1 kHz stereo PCM WAV using FFmpeg WebAssembly, with progress, cancellation, codec errors, and a 200 MB source limit (MP3 output and end-to-end media verification remain pending)
+- In-browser video audio extraction to downloadable 44.1 kHz stereo PCM WAV or MP3 using FFmpeg WebAssembly, with progress, cancellation, useful errors, and a 200 MB source limit; Chromium E2E tests verify real output metadata and audible samples
 - Five Canvas visualizers: oscilloscope, spectrum, stepped, sawtooth, and decay
 - LRC import/export with multi-timestamp, metadata, and offset support
 - Playback-synchronized lyric highlighting, line seek, manual timestamp editor, and preview offset
@@ -32,10 +32,15 @@ npm run dev
 ## Quality checks
 
 ```bash
+npm ci
 npm run typecheck
 npm test
 npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
+
+The GitHub Actions workflow runs the full Chromium suite, creates temporary video fixtures, validates WAV/MP3 codec, duration, sample rate, channel count and audible signal with FFmpeg/ffprobe, and uploads Playwright diagnostics on failure. Local media-fixture tests are skipped when the generated fixtures are absent.
 
 ## Roadmap
 

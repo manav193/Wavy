@@ -9,7 +9,7 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [x] LRC import/export, line-level timing editor, preview offset, and NIMO text-formatting adapter.
 - [x] MP3/audio file selection and browser-supported MP4/WebM/MOV/M4V media input; media audio is routed to Web Audio analysis.
 - [x] Five selectable karaoke preview presets with estimated line-interval word activation; true word timestamps and forced alignment remain pending.
-- [x] Local FFmpeg.wasm audio extraction flow with WAV and MP3 options; browser-level output and encoder verification remain pending.
+- [x] Local FFmpeg.wasm audio extraction to WAV and MP3; Chromium E2E validates output codec, duration, 44.1 kHz stereo metadata, and audible samples.
 - [ ] Full lyric-video rendering/export — not yet shipped.
 
 ## Phase 1 — Word-level karaoke animation engine
@@ -34,9 +34,9 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [x] Extract the first audio stream from supported video containers to downloadable 44.1 kHz stereo PCM WAV. MP3 encoding option added via libmp3lame; output verification on the loaded WebAssembly build remains pending.
 - [x] Provide progress, cancellation, codec/format errors, and a 200 MB source-file guard.
 - [x] Keep source files local by default; the conversion does not upload media.
-- [ ] Add browser-level media fixtures/tests for unsupported codecs, silent videos, cancellation, and output validity. Pure file-helper tests are included; end-to-end export verification is still pending.
+- [x] Add browser-level media fixtures/tests for valid WAV/MP3 output, invalid media, silent videos, cancellation, and output validity.
 
-**Acceptance status:** the WAV extraction flow and download are implemented, but the phase is not considered complete until browser-level fixture tests verify output duration/audio content and edge cases. MP3 is implemented as an option, but encoder availability and output validity still require browser-level verification.
+**Acceptance status:** the WAV/MP3 flow and downloadable outputs pass Chromium E2E checks against generated video fixtures. Codec, duration, sample rate, channel count, and non-silent audio are inspected with ffprobe/FFmpeg. Unsupported codecs can still vary by source and browser/device.
 
 ## Phase 3 — Lyric-video studio timeline
 
@@ -48,7 +48,7 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [ ] Share one deterministic renderer between preview and final video export (Phase 4).
 - [ ] Add image/video backgrounds, typography controls, text outlines/shadows, safe-area guides, and more complete layer styling.
 
-**Acceptance status:** the editable project/timeline foundation and preview are implemented. Final video rendering, media relinking, audio trimming, and full browser interaction tests remain outstanding; a project JSON is not a rendered video.
+**Acceptance status:** Chromium E2E covers autosave/reload, overlay move/resize, lyric cue timestamp edits, and project JSON import/export. Final video rendering, media relinking, audio trimming, mobile touch behavior, and full accessibility testing remain outstanding; a project JSON is not a rendered video.
 
 ## Phase 4 — MP4 lyric-video export
 
@@ -75,7 +75,7 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [ ] Package the web app with Capacitor and test file pickers, playback, storage, and export on physical Android devices.
 - [ ] Use capability adapters for browser vs. Android encoder differences.
 - [ ] Add accessibility checks, mobile memory limits, error reporting without media contents, and offline behavior.
-- [ ] Add CI coverage for typecheck, unit tests, production build, and media-adapter tests.
+- [x] Add CI coverage for typecheck, unit tests, production build, Chromium E2E, and media artifact verification.
 - [ ] Document supported codecs/devices and release process.
 
 ## Architecture principles
