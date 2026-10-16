@@ -14,7 +14,7 @@ Scope: React/TypeScript app, Studio timeline, lyrics parser/editor, NIMO client,
 7. **Vite/FFmpeg compatibility:** use the FFmpeg ESM core build with Vite and set cross-origin isolation headers for the local browser runtime. Runtime failures preserve useful error details instead of collapsing non-Error worker rejections into a generic message.
 8. **Reproducible installs:** committed `package-lock.json`; CI uses `npm ci`.
 9. **Browser regression suite:** Playwright tests cover Studio settings autosave, overlay drag/resize, lyric timestamp edits, project JSON roundtrip, valid WAV/MP3 extraction, silent/invalid inputs, and cancellation.
-10. **Artifact validation:** generated three-second video/audio fixtures are converted in Chromium; ffprobe verifies codec, duration, 44.1 kHz sample rate, and stereo channels, while FFmpeg volume analysis verifies the output contains an audible signal.
+10. **Audio artifact validation:** generated three-second video/audio fixtures are converted in Chromium; ffprobe verifies codec, duration, 44.1 kHz sample rate, and stereo channels, while FFmpeg volume analysis verifies the output contains an audible signal.\n11. **Phase 4 video renderer:** added a project-clocked Canvas renderer that draws background, timed lyric cues, enabled overlays, and a selected audio-reactive visualizer. It captures the source audio stream, records canvas frames at the selected frame rate, detects MP4 support and falls back to WebM, displays progress and size estimates, supports cancellation, and cleans up temporary streams/object URLs.\n12. **Video artifact E2E:** a short real media fixture is rendered in Chromium; ffprobe checks that the downloaded artifact contains both video and audio streams, expected duration, dimensions, and frame rate.
 
 ## Validation
 
@@ -28,8 +28,8 @@ Scope: React/TypeScript app, Studio timeline, lyrics parser/editor, NIMO client,
 - Studio project JSON stores timeline metadata only; media bytes are not embedded and source media must be reselected after import.
 - Audio clip trimming, image/video backgrounds, advanced typography/safe-area guides, and deterministic final MP4 rendering are not implemented.
 - Physical Android/Capacitor validation, mobile touch-specific timeline tests, accessibility audit, and low-memory device testing remain release requirements.
-- The Studio preview is live and analyser-backed; it is not yet the deterministic renderer used by a final exported video.
+- Video capture runs in real time. Longer-form audio/video synchronization, browser encoder differences, and physical Android export still need validation.
 
 ## QA policy
 
-A UI click or a generated download event is not enough to mark media export complete. The actual artifact must be inspected for format, duration, channels/sample rate, and non-silent audio. Playback/preview is not final video export, and estimated lyric timing is not verified word alignment.
+A UI click or a generated download event is not enough to mark media export complete. The actual artifact must be inspected for format, duration, frame rate, video/audio streams, and non-silent audio. The current Chromium E2E validates the short exported artifact; it does not prove every browser/Android encoder or long-form synchronization. Estimated lyric timing is not verified word alignment.
