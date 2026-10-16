@@ -21,7 +21,7 @@ function expectValidAudioArtifact(outputPath: string, expectedCodec: string) {
     "-hide_banner", "-i", outputPath, "-af", "volumedetect", "-f", "null", "-",
   ], { encoding: "utf8" });
   expect(analysis.status).toBe(0);
-  const meanVolume = /mean_volume:\\s*(-?[\\d.]+) dB/.exec(analysis.stderr);
+  const meanVolume = /mean_volume:\s*(-?[\d.]+) dB/.exec(analysis.stderr);
   expect(meanVolume).not.toBeNull();
   expect(Number(meanVolume?.[1])).toBeLessThan(-10);
 }
