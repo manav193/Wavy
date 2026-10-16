@@ -75,8 +75,8 @@ test("real video fixture extracts a valid WAV file", async ({ page }) => {
   test.skip(!hasMediaFixture, "CI generates a short MP4 fixture before running browser tests.");
   await page.locator("#audio-input").setInputFiles(fixturePath);
   await expect(page.getByRole("heading", { name: "sample" })).toBeVisible();
-  await page.getByRole("button", { name: "Extract audio to WAV" }).click();
   const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Extract audio to WAV" }).click();
   const download = await downloadPromise;
   const outputPath = await download.path();
   if (!outputPath) throw new Error("WAV extraction did not create a downloadable file.");
@@ -94,9 +94,9 @@ test("real video fixture extracts a valid WAV file", async ({ page }) => {
 test("real video fixture extracts a valid MP3 file", async ({ page }) => {
   test.skip(!hasMediaFixture, "CI generates a short MP4 fixture before running browser tests.");
   await page.locator("#audio-input").setInputFiles(fixturePath);
-  await page.getByLabel("OUTPUT FORMAT").selectOption("mp3");
-  await page.getByRole("button", { name: "Extract audio to MP3" }).click();
+  await page.locator(".extractor-format select").selectOption("mp3");
   const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Extract audio to MP3" }).click();
   const download = await downloadPromise;
   const outputPath = await download.path();
   if (!outputPath) throw new Error("MP3 extraction did not create a downloadable file.");
