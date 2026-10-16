@@ -7,7 +7,7 @@ interface AudioExtractorProps {
   sourceFile: File;
 }
 
-const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.9/dist/umd";
+const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm";
 
 export default function AudioExtractor({ sourceFile }: AudioExtractorProps) {
   const ffmpegRef = useRef<import("@ffmpeg/ffmpeg").FFmpeg | null>(null);
