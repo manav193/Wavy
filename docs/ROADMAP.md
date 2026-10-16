@@ -10,7 +10,7 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [x] MP3/audio file selection and browser-supported MP4/WebM/MOV/M4V media input; media audio is routed to Web Audio analysis.
 - [x] Five selectable karaoke preview presets with estimated line-interval word activation; true word timestamps and forced alignment remain pending.
 - [x] Local FFmpeg.wasm audio extraction to WAV and MP3; Chromium E2E validates output codec, duration, 44.1 kHz stereo metadata, and audible samples.
-- [ ] Full lyric-video rendering/export — not yet shipped.
+- [x] Browser-based Studio video export implementation with project-clocked canvas frames, captured source audio, animated lyric cues, audio-reactive visualizer, progress/cancel, output-size guard, and MP4/WebM encoder detection. Actual browser artifact validation is in CI.
 
 ## Phase 1 — Word-level karaoke animation engine
 
@@ -45,7 +45,7 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [x] Add timeline zoom, 250 ms snapping, draggable/resizable visualizer and overlay clips, lyric cue seeking and direct timestamp editing.
 - [x] Add a composition preview for background presets, active lyric cue, timed text overlays, and visualizer-layer timing.
 - [x] Autosave project metadata locally and support versioned `.wavy.json` project import/export with schema validation.
-- [ ] Share one deterministic renderer between preview and final video export (Phase 4).
+- [x] Add a deterministic project-clock renderer for final video frames; frame visuals and lyric cue selection are derived from media time rather than CSS animation.
 - [ ] Add image/video backgrounds, typography controls, text outlines/shadows, safe-area guides, and more complete layer styling.
 
 **Acceptance status:** Chromium E2E covers autosave/reload, overlay move/resize, lyric cue timestamp edits, and project JSON import/export. Final video rendering, media relinking, audio trimming, mobile touch behavior, and full accessibility testing remain outstanding; a project JSON is not a rendered video.
@@ -58,7 +58,7 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [ ] Show render progress, estimate storage needs, allow cancellation, and revoke temporary object URLs.
 - [ ] Verify audio/video duration alignment, frame-rate consistency, and output playback.
 
-**Acceptance:** the downloaded video includes the selected animation, visualizer, and audio, and stays synchronized at the beginning, middle, and end.
+**Implementation status:** browser-based recording now exports a real playable video with source audio, lyric cues, the selected visualizer mode, background, and enabled overlays. MP4 is used only when the browser reports a compatible encoder; WebM is the supported fallback. The short-fixture Chromium E2E checks the downloaded artifact itself.\n\n**Known limitations:** capture runs in real time, so a three-minute song takes about three minutes to export. The renderer uses a deterministic synthetic spectrum when the Web Audio analyser is unavailable. Image/video backgrounds, clip trimming, word-level forced alignment, and Android/browser compatibility checks remain outside this phase.
 
 ## Phase 5 — Transcription and word alignment
 
