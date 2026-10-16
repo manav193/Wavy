@@ -40,7 +40,10 @@ function expectValidVideoArtifact(outputPath: string) {
   expect(Number(metadata.format.duration)).toBeLessThan(4.5);
   expect(video.width).toBeGreaterThan(0);
   expect(video.height).toBeGreaterThan(0);
-  const [fpsNumerator, fpsDenominator] = String(video.avg_frame_rate).split("/").map(Number);\n  const averageFps = fpsNumerator / fpsDenominator;\n  expect(Number.isFinite(averageFps)).toBe(true);\n  expect(Math.abs(averageFps - 30)).toBeLessThan(1);
+  const [fpsNumerator, fpsDenominator] = String(video.avg_frame_rate).split("/").map(Number);
+  const averageFps = fpsNumerator / fpsDenominator;
+  expect(Number.isFinite(averageFps)).toBe(true);
+  expect(Math.abs(averageFps - 30)).toBeLessThan(1);
 }
 
 async function waitForExtractionLink(page: import("@playwright/test").Page, format: "WAV" | "MP3") {
