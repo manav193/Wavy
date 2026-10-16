@@ -9,7 +9,6 @@ interface VideoExporterProps {
   project: StudioProject;
   lyricLines: LyricLine[];
   trackUrl: string;
-  trackName: string;
   duration: number;
   visualizerMode: VisualizerMode;
 }
@@ -164,7 +163,7 @@ export function drawProjectFrame(options: RenderFrameOptions): void {
   ctx.restore();
 }
 
-export default function VideoExporter({ project, lyricLines, trackUrl, trackName, duration, visualizerMode }: VideoExporterProps) {
+export default function VideoExporter({ project, lyricLines, trackUrl, duration, visualizerMode }: VideoExporterProps) {
   const [status, setStatus] = useState<ExportStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
@@ -247,6 +246,8 @@ export default function VideoExporter({ project, lyricLines, trackUrl, trackName
     let recorder: MediaRecorder | null = null;
     let raf = 0;
     let finished = false;
+    let cancelled = false;
+    let failed = false;
     let chunks: BlobPart[] = [];
     let lastProgress = 0;
     let audioStream: MediaStream | null = null;
@@ -263,7 +264,9 @@ export default function VideoExporter({ project, lyricLines, trackUrl, trackName
     };
     const fail = (error: unknown) => {
       if (finished) return;
+      failed = true;
       finished = true;
+      if (recorder?.state === "recording") recorder.stop();
       cleanup();
       if (aliveRef.current) {
         setStatus("error");
@@ -272,8 +275,9 @@ export default function VideoExporter({ project, lyricLines, trackUrl, trackName
     };
     cancelRef.current = () => {
       if (finished) return;
+      cancelled = true;
       finished = true;
-      recorder?.stop();
+      if (recorder?.state === "recording") recorder.stop();
       cleanup();
     };
 
@@ -297,7 +301,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, trackName
       recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
       recorder.onerror = () => fail(new Error("The browser media encoder failed while recording."));
       recorder.onstop = () => {
-        if (finished && chunks.length === 0) return;
+        if (cancelled || failed) { chunks = []; cleanup(); return; }
         finished = true;
         cleanup();
         const blob = new Blob(chunks, { type: recorder?.mimeType || mimeType });
