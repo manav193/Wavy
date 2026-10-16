@@ -38,12 +38,19 @@ function expectValidVideoArtifact(outputPath: string) {
   expect(audio).toBeTruthy();
   expect(Number(metadata.format.duration)).toBeGreaterThan(2);
   expect(Number(metadata.format.duration)).toBeLessThan(4.5);
-  expect(video.width).toBeGreaterThan(0);
-  expect(video.height).toBeGreaterThan(0);
+  expect(video.width).toBe(1920);
+  expect(video.height).toBe(1080);
   const [fpsNumerator, fpsDenominator] = String(video.avg_frame_rate).split("/").map(Number);
   const averageFps = fpsNumerator / fpsDenominator;
   expect(Number.isFinite(averageFps)).toBe(true);
   expect(Math.abs(averageFps - 30)).toBeLessThan(1);
+  const analysis = spawnSync("ffmpeg", [
+    "-hide_banner", "-i", outputPath, "-map", "0:a:0", "-af", "volumedetect", "-f", "null", "-",
+  ], { encoding: "utf8" });
+  expect(analysis.status).toBe(0);
+  const meanVolume = /mean_volume:\\s*(-?[\\d.]+) dB/.exec(analysis.stderr);
+  expect(meanVolume).not.toBeNull();
+  expect(Number(meanVolume?.[1])).toBeLessThan(-10);
 }
 
 async function waitForExtractionLink(page: import("@playwright/test").Page, format: "WAV" | "MP3") {
