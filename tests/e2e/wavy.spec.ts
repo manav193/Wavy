@@ -32,7 +32,7 @@ async function waitForExtractionLink(page: import("@playwright/test").Page, form
   await page.waitForFunction(() => {
     const card = document.querySelector(".extraction-card");
     return Boolean(card?.querySelector("a[download]") || card?.querySelector('[role="alert"]'));
-  }, undefined, { timeout: 150_000 });
+  }, undefined, { timeout: 60_000 });
   if (await link.isVisible()) return link;
   throw new Error(`Extraction failed: ${await alert.innerText()}`);
 }
@@ -107,7 +107,7 @@ test("real video fixture extracts a valid WAV with audible samples", async ({ pa
   test.skip(!hasMediaFixture, "CI generates a short MP4 fixture before running browser tests.");
   await page.locator("#audio-input").setInputFiles(fixturePath);
   await expect(page.getByRole("heading", { name: "sample" })).toBeVisible();
-  test.setTimeout(180_000);
+  test.setTimeout(120_000);
   await page.getByRole("button", { name: "Extract audio to WAV" }).click();
   const downloadLink = await waitForExtractionLink(page, "WAV");
   const downloadPromise = page.waitForEvent("download");
