@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointer
 import { Download, Film, Grid2X2, MoveHorizontal, Music2, Plus, RotateCcw, SkipBack, Settings2, Sparkles, Type, Upload, Waves } from "lucide-react";
 import type { LyricLine } from "../lyrics/lrc";
 import AudioCanvas, { type VisualizerMode } from "../visualizer/AudioCanvas";
+import VideoExporter from "./VideoExporter";
 import {
   createDefaultProject,
   getCanvasDimensions,
@@ -19,6 +20,7 @@ interface StudioTimelineProps {
   duration: number;
   seek: (seconds: number) => void;
   trackName: string;
+  trackUrl: string;
   lyricLines: LyricLine[];
   onMoveLyric: (id: string, startMs: number) => void;
   analyser: AnalyserNode | null;
@@ -65,7 +67,7 @@ function makeId(): string {
     : `clip-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export default function StudioTimeline({ currentTime, duration, seek, trackName, lyricLines, onMoveLyric, analyser, playing, visualizerMode }: StudioTimelineProps) {
+export default function StudioTimeline({ currentTime, duration, seek, trackName, trackUrl, lyricLines, onMoveLyric, analyser, playing, visualizerMode }: StudioTimelineProps) {
   const [project, setProject] = useState<StudioProject>(readSavedProject);
   const [selectedClipId, setSelectedClipId] = useState<string | null>("overlay-title");
   const [notice, setNotice] = useState("");
@@ -213,7 +215,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
     <section className="info-card studio-workspace" aria-labelledby="studio-heading">
       <div className="card-heading">
         <span><Film size={17} /> STUDIO TIMELINE</span>
-        <span className="small-status">PHASE 3 · PROJECT EDITOR</span>
+        <span className="small-status">PHASE 4 · VIDEO EXPORT</span>
       </div>
       <div className="studio-header">
         <div>
@@ -241,7 +243,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
             {activeOverlay?.text && <div className="studio-preview-overlay">{activeOverlay.text}</div>}
             <span className="studio-preview-time">{timeLabel(currentTime)}</span>
           </div>
-          <div className="studio-preview-note">Preview only · final MP4 rendering is a later phase</div>
+          <div className="studio-preview-note">Live preview · final export uses the project clock and captured source audio</div>
         </div>
 
         <div className="studio-settings">
@@ -263,6 +265,8 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
           <div className="studio-settings-footer"><span><span className="status-light" /> AUTO-SAVED LOCALLY</span><button onClick={resetProject}><RotateCcw size={12} /> Reset</button></div>
         </div>
       </div>
+
+      <VideoExporter project={project} lyricLines={lyricLines} trackUrl={trackUrl} trackName={trackName} duration={duration} visualizerMode={visualizerMode} />
 
       <div className="studio-timeline-toolbar">
         <div className="studio-timeline-title"><span><MoveHorizontal size={15} /> MULTI-TRACK TIMELINE</span><span>{timeLabel(currentTime)} / {timeLabel(duration)}</span></div>
@@ -323,7 +327,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
       {isDragging && <div className="studio-drag-hint">Release to finish editing clip timing</div>}
       {notice && <div className="lyrics-notice" role="status">{notice}</div>}
       {warning && <div className="lyrics-warning" role="alert">{warning}</div>}
-      <div className="studio-footnote"><Sparkles size={13} /> Project settings auto-save in this browser. Exported .wavy.json files contain timeline metadata only — source media is never embedded. Final video rendering is not included in Phase 3.</div>
+      <div className="studio-footnote"><Sparkles size={13} /> Project settings auto-save in this browser. Exported .wavy.json files contain timeline metadata only — source media is never embedded. Video export records the rendered canvas in real time; MP4 is used only when the browser exposes a compatible encoder, otherwise the download is WebM.</div>
     </section>
   );
 }
