@@ -13,6 +13,7 @@ Wavy is a music player and lyric-video studio for web and Android, with real-tim
 - Playback-synchronized lyric highlighting, line seek, manual timestamp editor, and preview offset
 - Five selectable word-level karaoke preview presets; word timing is estimated from line intervals until word-level timestamps are supplied
 - Studio workspace with 16:9, 9:16, and 1:1 project settings, 720p/1080p resolution presets, 24/30/60 FPS, background presets, and a live composition preview
+- Phase 4 video export: project-clocked canvas rendering, audio-reactive visualizer frames, timestamped lyrics and overlays, captured source audio, progress/cancel, estimated output size, MP4 when supported with WebM fallback, and local downloadable output
 - Multi-track timeline for source audio, visualizer, lyric cue points, and draggable/resizable text overlays; 250 ms snapping, project autosave, and versioned `.wavy.json` import/export
 - Optional NIMO-CORE text-formatting assist with an explicit review/apply step
 - Responsive dark CRT-inspired UI
@@ -40,13 +41,13 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The GitHub Actions workflow runs the full Chromium suite, creates temporary video fixtures, validates WAV/MP3 codec, duration, sample rate, channel count and audible signal with FFmpeg/ffprobe, and uploads Playwright diagnostics on failure. Local media-fixture tests are skipped when the generated fixtures are absent.
+The GitHub Actions workflow runs the full Chromium suite, creates temporary video fixtures, validates WAV/MP3 codec, duration, sample rate, channel count and audible signal with FFmpeg/ffprobe, validates the rendered video artifact contains video and audio streams with expected duration and frame rate, and uploads Playwright diagnostics on failure. Local media-fixture tests are skipped when the generated fixtures are absent.
 
 ## Roadmap
 
 1. [x] Establish the web foundation and working audio-reactive visualizer.
 2. [x] Add timestamped lyrics/LRC import, synchronization, editing, and optional NIMO text assist.
-3. [x] Build the Phase 3 studio timeline foundation; Phase 4 deterministic lyric-video rendering/export remains pending.
+3. [x] Build the Studio timeline and Phase 4 local video rendering/export; longer-form sync and physical Android encoder validation remain pending.
 4. [ ] Package for Android with Capacitor and test on a device.
 5. [x] Add a verified optional NIMO chat adapter for user-approved lyric formatting drafts.
 6. [ ] Add dedicated audio transcription/forced-alignment through a configured backend provider.
