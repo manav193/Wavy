@@ -314,3 +314,21 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10
   .studio-timeline-title { width: 100%; }
   .studio-toolbar-actions { width: 100%; }
 }
+
+
+.video-exporter { margin: 16px 0; padding: 15px; border: 1px solid rgba(128,255,179,.2); border-radius: 10px; background: linear-gradient(135deg, rgba(128,255,179,.055), rgba(10,17,12,.4)); }
+.video-exporter-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; color:#b7d6c0; font:10px var(--mono); letter-spacing:.07em; }
+.video-exporter-heading > span:first-child { display:flex; align-items:center; gap:8px; }
+.video-exporter-heading svg { color:var(--green); }
+.video-exporter p { margin:10px 0; color:#91a498; font-size:11px; line-height:1.7; max-width:780px; }
+.video-exporter-meta { display:flex; flex-wrap:wrap; gap:8px 18px; color:#718678; font:9px var(--mono); }
+.video-exporter-actions { display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin-top:13px; }
+.video-exporter-actions .primary-action:disabled { opacity:.45; cursor:not-allowed; }
+.video-export-running { display:inline-flex; align-items:center; gap:6px; color:var(--amber); font:9px var(--mono); }
+.video-export-running svg { animation:video-export-spin 1.2s linear infinite; }
+@keyframes video-export-spin { to { transform:rotate(360deg); } }
+.video-export-progress { margin-top:13px; }
+.video-export-progress-track { height:5px; border-radius:99px; overflow:hidden; background:rgba(128,255,179,.1); }
+.video-export-progress-track span { display:block; height:100%; background:var(--green); transition:width .15s linear; }
+.video-export-progress > div:last-child { display:flex; justify-content:space-between; gap:10px; margin-top:7px; color:#819488; font:9px var(--mono); }
+.video-export-progress > div:last-child span:last-child { text-align:right; max-width:85%; }
