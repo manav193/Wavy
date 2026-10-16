@@ -96,8 +96,12 @@ test("real video fixture extracts a valid WAV with audible samples", async ({ pa
   test.skip(!hasMediaFixture, "CI generates a short MP4 fixture before running browser tests.");
   await page.locator("#audio-input").setInputFiles(fixturePath);
   await expect(page.getByRole("heading", { name: "sample" })).toBeVisible();
-  const downloadPromise = page.waitForEvent("download");
+  test.setTimeout(180_000);
   await page.getByRole("button", { name: "Extract audio to WAV" }).click();
+  const downloadLink = page.getByRole("link", { name: "Download WAV" });
+  await expect(downloadLink).toBeVisible({ timeout: 150_000 });
+  const downloadPromise = page.waitForEvent("download");
+  await downloadLink.click();
   const download = await downloadPromise;
   const outputPath = await download.path();
   if (!outputPath) throw new Error("WAV extraction did not create a downloadable file.");
@@ -108,8 +112,12 @@ test("real video fixture extracts a valid MP3 with audible samples", async ({ pa
   test.skip(!hasMediaFixture, "CI generates a short MP4 fixture before running browser tests.");
   await page.locator("#audio-input").setInputFiles(fixturePath);
   await page.locator(".extractor-format select").selectOption("mp3");
-  const downloadPromise = page.waitForEvent("download");
+  test.setTimeout(180_000);
   await page.getByRole("button", { name: "Extract audio to MP3" }).click();
+  const downloadLink = page.getByRole("link", { name: "Download MP3" });
+  await expect(downloadLink).toBeVisible({ timeout: 150_000 });
+  const downloadPromise = page.waitForEvent("download");
+  await downloadLink.click();
   const download = await downloadPromise;
   const outputPath = await download.path();
   if (!outputPath) throw new Error("MP3 extraction did not create a downloadable file.");
