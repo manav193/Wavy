@@ -221,7 +221,7 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
     }
     const dimensions = getCanvasDimensions(project.aspectRatio, project.resolution);
     const pixels = dimensions.width * dimensions.height;
-    const estimatedBytes = Math.round(exportDuration * (pixels > 2_000_000 ? 2_000_000 : pixels) * 0.08);
+    const estimatedBytes = Math.round(exportDuration * ((pixels > 2_000_000 ? 5_000_000 : 3_000_000) + 192_000) / 8 * 1.2);
     if (estimatedBytes > 1_500_000_000) {
       setStatus("error");
       setMessage("Estimated output is too large for a safe browser export. Use a shorter source or 720p.");
@@ -249,7 +249,6 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
     audio.crossOrigin = "anonymous";
     audio.volume = 1;
     audio.muted = false;
-    audio.playsInline = true;
     let recorder: MediaRecorder | null = null;
     let raf = 0;
     let finished = false;
