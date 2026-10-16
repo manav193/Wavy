@@ -292,14 +292,9 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
     };
 
     try {
-      await new Promise<void>((resolve, reject) => {
-        audio.addEventListener("loadedmetadata", () => resolve(), { once: true });
-        audio.addEventListener("error", () => reject(new Error("The source media could not be decoded for export.")), { once: true });
-        audio.load();
-      });
-      if (cancelled || finished) { cleanup(); return; }
-      if (!Number.isFinite(audio.duration) || audio.duration <= 0) throw new Error("The source media has no readable duration.");
-      const targetDuration = Math.min(exportDuration, audio.duration);
+      // Resume the Web Audio context directly from the export button gesture, before
+      // awaiting media metadata, so autoplay policies do not block the recording.
+      let resumeContext: Promise<void> | null = null;
       const AudioContextCtor = window.AudioContext;
       if (AudioContextCtor) {
         exportContext = new AudioContextCtor();
@@ -313,14 +308,22 @@ export default function VideoExporter({ project, lyricLines, trackUrl, duration,
         exportAnalyser.connect(recordingDestination);
         exportAnalyser.connect(exportContext.destination);
         audioStream = recordingDestination.stream;
-        if (exportContext.state === "suspended") await exportContext.resume();
-        if (cancelled || finished) { cleanup(); return; }
+        if (exportContext.state === "suspended") resumeContext = exportContext.resume();
       } else {
         const captureAudio = (audio as HTMLAudioElement & { captureStream?: () => MediaStream; mozCaptureStream?: () => MediaStream }).captureStream
           ?? (audio as HTMLAudioElement & { mozCaptureStream?: () => MediaStream }).mozCaptureStream;
         if (!captureAudio) throw new Error("This browser cannot capture source audio. Try an up-to-date desktop Chromium browser.");
         audioStream = captureAudio.call(audio);
       }
+      const metadataReady = new Promise<void>((resolve, reject) => {
+        audio.addEventListener("loadedmetadata", () => resolve(), { once: true });
+        audio.addEventListener("error", () => reject(new Error("The source media could not be decoded for export.")), { once: true });
+      });
+      audio.load();
+      await Promise.all([metadataReady, resumeContext ?? Promise.resolve()]);
+      if (cancelled || finished) { cleanup(); return; }
+      if (!Number.isFinite(audio.duration) || audio.duration <= 0) throw new Error("The source media has no readable duration.");
+      const targetDuration = Math.min(exportDuration, audio.duration);
       combinedStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioStream.getAudioTracks()]);
       if (!combinedStream.getAudioTracks().length) throw new Error("The browser did not expose an audio track for recording.");
       recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: pixels > 2_000_000 ? 5_000_000 : 3_000_000, audioBitsPerSecond: 192_000 });
