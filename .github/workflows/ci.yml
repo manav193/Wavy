@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   web:
@@ -20,26 +20,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Record whether a lockfile exists
-        run: |
-          if [ -f package-lock.json ]; then
-            echo "had_lockfile=true" >> "$GITHUB_ENV"
-          else
-            echo "had_lockfile=false" >> "$GITHUB_ENV"
-          fi
-      - name: Install dependencies and create lockfile when missing
-        run: npm install
-      - name: Commit initial lockfile on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          if [ "$had_lockfile" = "false" ] && [ -f package-lock.json ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "chore: add npm lockfile"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
-      - name: Verify clean reproducible install
+      - name: Install locked dependencies
         run: npm ci
       - name: Typecheck
         run: npm run typecheck
@@ -49,8 +30,12 @@ jobs:
         run: npm run build
       - name: Install FFmpeg for media fixture generation and validation
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes ffmpeg
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version
+          ffprobe -version
       - name: Install Chromium for browser tests
         run: npx playwright install --with-deps chromium
       - name: Generate three-second video/audio fixture
