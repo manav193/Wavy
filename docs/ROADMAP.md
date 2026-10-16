@@ -48,15 +48,16 @@ This roadmap prioritizes a reliable local-first music and lyric-video workflow. 
 - [x] Add a deterministic project-clock renderer for final video frames; frame visuals and lyric cue selection are derived from media time rather than CSS animation.
 - [ ] Add image/video backgrounds, typography controls, text outlines/shadows, safe-area guides, and more complete layer styling.
 
-**Acceptance status:** Chromium E2E covers autosave/reload, overlay move/resize, lyric cue timestamp edits, and project JSON import/export. Final video rendering, media relinking, audio trimming, mobile touch behavior, and full accessibility testing remain outstanding; a project JSON is not a rendered video.
+**Acceptance status:** Chromium E2E covers autosave/reload, overlay move/resize, lyric cue timestamp edits, project JSON import/export, and the downloaded video artifact. Media relinking, audio trimming, mobile touch behavior, and full accessibility testing remain outstanding; a project JSON is not a rendered video.
 
 ## Phase 4 — MP4 lyric-video export
 
-- [ ] Implement a renderer/export adapter with capability detection.
-- [ ] Render frames from a deterministic project clock rather than relying only on wall-clock CSS animation.
-- [ ] Mux rendered frames and audio into MP4 where the selected encoder is available; offer a clearly labeled supported fallback if not.
-- [ ] Show render progress, estimate storage needs, allow cancellation, and revoke temporary object URLs.
-- [ ] Verify audio/video duration alignment, frame-rate consistency, and output playback.
+- [x] Implement a canvas renderer/export adapter with browser encoder capability detection.
+- [x] Render lyric cues, overlays, backgrounds, and visualizer frames from the source media clock.
+- [x] Capture source audio and combine it with canvas video frames; choose MP4 when supported and clearly fall back to WebM.
+- [x] Show render progress, estimate output size, allow cancellation, clean up streams, and revoke temporary object URLs.
+- [x] Add Chromium E2E artifact validation for video/audio streams, duration, dimensions, and frame rate.
+- [ ] Verify long-form sync and encoder stability across mobile browsers and physical Android devices.
 
 **Implementation status:** browser-based recording now exports a real playable video with source audio, lyric cues, the selected visualizer mode, background, and enabled overlays. MP4 is used only when the browser reports a compatible encoder; WebM is the supported fallback. The short-fixture Chromium E2E checks the downloaded artifact itself.\n\n**Known limitations:** capture runs in real time, so a three-minute song takes about three minutes to export. The renderer uses a deterministic synthetic spectrum when the Web Audio analyser is unavailable. Image/video backgrounds, clip trimming, word-level forced alignment, and Android/browser compatibility checks remain outside this phase.
 
