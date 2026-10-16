@@ -266,7 +266,7 @@ export default function StudioTimeline({ currentTime, duration, seek, trackName,
         </div>
       </div>
 
-      <VideoExporter project={project} lyricLines={lyricLines} trackUrl={trackUrl} trackName={trackName} duration={duration} visualizerMode={visualizerMode} />
+      <VideoExporter project={project} lyricLines={lyricLines} trackUrl={trackUrl} duration={duration} visualizerMode={visualizerMode} />
 
       <div className="studio-timeline-toolbar">
         <div className="studio-timeline-title"><span><MoveHorizontal size={15} /> MULTI-TRACK TIMELINE</span><span>{timeLabel(currentTime)} / {timeLabel(duration)}</span></div>
